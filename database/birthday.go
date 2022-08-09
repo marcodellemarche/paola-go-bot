@@ -1,94 +1,90 @@
 package database
 
 import (
+	"fmt"
 	"log"
-	"strings"
+	"time"
 
-	f "github.com/fauna/faunadb-go/v4/faunadb"
+	_ "embed"
+
+	_ "github.com/lib/pq"
 )
 
-var (
-	birthdayCollection = f.Collection("birthdays")
-)
+//go:embed birthday/create.sql
+var sqlBirthdayCreateTable string
+
+//go:embed birthday/drop.sql
+var sqlBirthdayDropTable string
+
+//go:embed birthday/insert.sql
+var sqlBirthdayInsert string
+
+//go:embed birthday/find_by_user.sql
+var sqlBirthdayFindByUser string
+
+//go:embed birthday/delete_by_name.sql
+var sqlBirthdayDeleteByName string
 
 type Birthday struct {
-	Name string `fauna:"name"`
-	Date int64  `fauna:"date"`
+	id      string
+	name    string
+	date    string
+	user_id int64
 }
 
-func birthdayNew(name string, date int64) Birthday {
+func BirthdayNew(id string, name string, date string, user_id int64) Birthday {
 	return Birthday{
+		id,
 		name,
 		date,
+		user_id,
 	}
 }
 
-func createBirthdayCollection(client *f.FaunaClient) {
-	_, err := client.Query(f.CreateCollection(f.Obj{"name": "birthdays"}))
-
-	if err != nil && !strings.Contains(err.Error(), "instance already exists") {
-		log.Fatalln(err)
-	}
+func BirthdayCreateTable() {
+	_, err := db.Exec(sqlBirthdayCreateTable)
+	CheckError(err)
 }
 
-func createBirthday(client *f.FaunaClient, birthday Birthday) string {
-	var birthdayId f.RefV
-
-	newBirthday, err := client.Query(
-		f.Create(
-			f.Collection(birthdayCollection),
-			f.Obj{"data": birthday},
-		),
-	)
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	err = newBirthday.At(ref).Get(&birthdayId)
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	return birthdayId.ID
+func BirthdayDropTable() {
+	_, err := db.Exec(sqlBirthdayDropTable)
+	CheckError(err)
 }
 
-func updateBirthday(client *f.FaunaClient, id string, birthday Birthday) {
-	_, err := client.Query(
-		f.Update(
-			f.Ref(birthdayCollection, id),
-			f.Obj{"data": birthday},
-		),
-	)
-
-	if err != nil {
-		log.Fatalln(err)
+func BirthdayInsert(name string, day uint8, month uint8, userId int64) {
+	if day > 31 {
+		log.Fatalf("Invalid day: %d > 31", day);
 	}
+
+	if month > 12 {
+		log.Fatalf("Invalid month: %d > 12", month);
+	}
+	
+	date, err := time.Parse("2006-01-02", fmt.Sprintf("2000-%02d-%02d", month, day))
+	CheckError(err)
+
+	_, err = db.Exec(sqlBirthdayInsert, name, date, userId)
+	CheckError(err)
 }
 
-func getBirthday(client *f.FaunaClient, id string) Birthday {
-	var birthday Birthday
+func BirthdayFindByUser(userId int64) []Birthday {
+	rows, err := db.Query(sqlBirthdayFindByUser, userId)
+	CheckError(err)
 
-	value, err := client.Query(f.Get(f.Ref(birthdayCollection, id)))
+	// defer rows.Close()
 
-	if err != nil {
-		log.Fatalln(err)
+	birthdays := make([]Birthday, 0)
+	for rows.Next() {
+		var birthday Birthday
+		rows.Scan(&birthday.id, &birthday.name, &birthday.date, &birthday.user_id)
+		CheckError(err)
+		birthdays = append(birthdays, birthday)
 	}
 
-	err = value.At(data).Get(&birthday)
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	return birthday
+	return birthdays
 }
 
-func deleteBirthday(client *f.FaunaClient, id string) {
-	_, err := client.Query(f.Delete(f.Ref(birthdayCollection, id)))
-
-	if err != nil {
-		log.Fatalln(err)
-	}
+func BirthdayDeleteByName(name string) {
+	_, err := db.Exec(sqlBirthdayDeleteByName, name)
+	CheckError(err)
 }

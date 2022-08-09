@@ -1,98 +1,39 @@
 package database
 
 import (
-	"log"
-	"strings"
+	_ "embed"
 
-	f "github.com/fauna/faunadb-go/v4/faunadb"
+	_ "github.com/lib/pq"
 )
 
-var (
-	userCollection = f.Collection("users")
-)
+//go:embed user/create.sql
+var sqlUserCreateTable string
 
-type User struct {
-	id    string
-	Name  string `fauna:"name"`
-	Super bool   `fauna:"super"`
+//go:embed user/drop.sql
+var sqlUserDropTable string
+
+//go:embed user/insert.sql
+var sqlUserInsert string
+
+//go:embed user/delete_by_id.sql
+var sqlUserDeleteById string
+
+func UserCreateTable() {
+	_, err := db.Exec(sqlUserCreateTable)
+	CheckError(err)
 }
 
-func userNew(id string, name string, super bool) User {
-	return User{
-		id,
-		name,
-		super,
-	}
+func UserDropTable() {
+	_, err := db.Exec(sqlUserDropTable)
+	CheckError(err)
 }
 
-func createUserCollection(client *f.FaunaClient) {
-	_, err := client.Query(f.CreateCollection(f.Obj{"name": "users"}))
-
-	if err != nil && !strings.Contains(err.Error(), "instance already exists") {
-		log.Fatalln(err)
-	}
+func UserInsert(id int64, name string) {
+	_, err := db.Exec(sqlUserInsert, id, name)
+	CheckError(err)
 }
 
-func createUser(client *f.FaunaClient, user User) string {
-	var userId f.RefV
-
-	newUser, err := client.Query(
-		f.Create(
-			f.Ref(userCollection, user.id),
-			f.Obj{"data": user},
-		),
-	)
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	err = newUser.At(ref).Get(&userId)
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	return userId.ID
-}
-
-func updateUser(client *f.FaunaClient, id string, user User) {
-	_, err := client.Query(
-		f.Update(
-			f.Ref(userCollection, id),
-			f.Obj{"data": user},
-		),
-	)
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-}
-
-func getUser(client *f.FaunaClient, id string) User {
-	var user User
-
-	value, err := client.Query(f.Get(f.Ref(userCollection, id)))
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	err = value.At(data).Get(&user)
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	user.id = id
-
-	return user
-}
-
-func deleteUser(client *f.FaunaClient, id string) {
-	_, err := client.Query(f.Delete(f.Ref(userCollection, id)))
-
-	if err != nil {
-		log.Fatalln(err)
-	}
+func UserDeleteById(id int64) {
+	_, err := db.Exec(sqlUserDeleteById, id)
+	CheckError(err)
 }
