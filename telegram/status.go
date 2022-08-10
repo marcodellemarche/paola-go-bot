@@ -1,43 +1,43 @@
 package telegram
 
+import (
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+)
+
 type UserId = int64
 
+// type Next func(
+// 	bot *tgbotapi.BotAPI,
+// 	message *tgbotapi.Message,
+// 	status StatusMap,
+// 	c chan<- StatusUpdate,
+// 	args ...string,
+// )
+
 type UserStatus struct {
-	command string
-	day uint8
-	month uint8
+	next func(bot *tgbotapi.BotAPI, message *tgbotapi.Message, status StatusMap, c chan<- StatusUpdate, args ...string)
+	args []string
 }
 
-func userStatusNew(command string, day uint8, month uint8) UserStatus {
+func UserStatusNew(next func(bot *tgbotapi.BotAPI, message *tgbotapi.Message, status StatusMap, c chan<- StatusUpdate, args ...string), args ...string) UserStatus {
 	return UserStatus{
-		command,
-		day,
-		month,
+		next,
+		args,
 	}
 }
 
 type StatusMap = map[UserId]UserStatus
 
-type StatusUpdateCommand struct {
+type StatusUpdate struct {
 	id   UserId
-	command string
+	next func(bot *tgbotapi.BotAPI, message *tgbotapi.Message, status StatusMap, c chan<- StatusUpdate, args ...string)
+	args []string
 }
 
-func statusUpdateCommandNew(id UserId, command string) StatusUpdateCommand {
-	return StatusUpdateCommand{
+func StatusUpdateNew(id UserId, next func(bot *tgbotapi.BotAPI, message *tgbotapi.Message, status StatusMap, c chan<- StatusUpdate, args ...string), args ...string) StatusUpdate {
+	return StatusUpdate{
 		id,
-		command,
-	}
-}
-
-type StatusUpdateMonth struct {
-	id   UserId
-	month uint8
-}
-
-func statusUpdateMonthNew(id UserId, month uint8) StatusUpdateMonth {
-	return StatusUpdateMonth{
-		id,
-		month,
+		next,
+		args,
 	}
 }

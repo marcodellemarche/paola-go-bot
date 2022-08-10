@@ -51,20 +51,32 @@ func BirthdayDropTable() {
 	CheckError(err)
 }
 
-func BirthdayInsert(name string, day uint8, month uint8, userId int64) {
+func BirthdayInsert(name string, day uint8, month uint8, userId int64) bool {
 	if day > 31 {
-		log.Fatalf("Invalid day: %d > 31", day);
+		log.Printf("Error inserting birthday into database, invalid day: %d > 31", day);
+		return false
 	}
 
 	if month > 12 {
-		log.Fatalf("Invalid month: %d > 12", month);
+		log.Printf("Error inserting birthday into database, invalid month: %d > 12", month);
+		return false
 	}
+
+	formattedDate := fmt.Sprintf("2000-%02d-%02d", month, day)
 	
-	date, err := time.Parse("2006-01-02", fmt.Sprintf("2000-%02d-%02d", month, day))
-	CheckError(err)
+	date, err := time.Parse("2006-01-02", formattedDate)
+	if err != nil {
+		log.Printf("Error inserting birthday into database, date format is not valid: %s", formattedDate)
+		return false
+	}
 
 	_, err = db.Exec(sqlBirthdayInsert, name, date, userId)
-	CheckError(err)
+	if err != nil {
+		log.Printf("Error inserting birthday into database, generic error. Maybe the name %s is a duplicate?", name)
+		return false
+	}
+
+	return true
 }
 
 func BirthdayFindByUser(userId int64) []Birthday {
