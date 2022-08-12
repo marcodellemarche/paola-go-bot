@@ -31,6 +31,9 @@ func Initialize() {
 	CheckError(err)
 
 	log.Println("DB connected!")
+
+	UserCreateTable()
+	BirthdayCreateTable()
 }
 
 func CheckError(err error) {

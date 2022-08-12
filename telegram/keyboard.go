@@ -19,3 +19,20 @@ func keyboard(rows ...[]string) tgbotapi.ReplyKeyboardMarkup {
 
 	return tgbotapi.NewReplyKeyboard(keyboardRows...)
 }
+
+var emptyKeyboard = tgbotapi.NewRemoveKeyboard(true)
+
+var monthKeyboard = keyboard(
+	[]string{"1", "2", "3"},
+	[]string{"4", "5", "6"},
+	[]string{"7", "8", "9"},
+	[]string{"10", "11", "12"},
+)
+
+var dayKeyboard = keyboard(
+	[]string{"1", "2", "3", "4", "5", "6", "7"},
+	[]string{"8", "9", "10", "11", "12", "13"},
+	[]string{"14", "15", "16", "17", "18", "19"},
+	[]string{"20", "21", "22", "23", "24", "25"},
+	[]string{"26", "27", "28", "29", "30", "31"},
+)
