@@ -18,7 +18,7 @@ const (
 
 var db sql.DB
 
-func Initialize() {
+func Initialize(dev bool) {
 	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=require", host, port, user, password, dbname)
 
 	pDb, err := sql.Open("postgres", psqlconn)
@@ -32,8 +32,15 @@ func Initialize() {
 
 	log.Println("DB connected!")
 
+	if dev {
+		BirthdayDropTable()
+		UserDropTable()
+	}
+
 	UserCreateTable()
 	BirthdayCreateTable()
+
+	log.Println("DB tables created")
 }
 
 func CheckError(err error) {

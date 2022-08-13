@@ -2,12 +2,23 @@ package main
 
 import (
 	"log"
-	"os"
-	"paola-go-bot/hello"
-	"paola-go-bot/telegram"
+	"time"
 
+	"paola-go-bot/scripts"
+
+	"github.com/alecthomas/kong"
 	"github.com/joho/godotenv"
 )
+
+var CLI struct {
+	Listen struct {
+		SayHi bool `help:"Say hi."`
+	} `cmd help:"Remove files."`
+
+	Reminder struct {
+		SayHi bool `help:"Say hi."`
+	} `cmd help:"Remind birthdays."`
+}
 
 func init() {
 	err := godotenv.Load(".env")
@@ -18,11 +29,19 @@ func init() {
 }
 
 func main() {
-	token := os.Getenv("TELEGRAM_TOKEN")
-	app_env := os.Getenv("APP_ENV")
-	db_secret := os.Getenv("FAUNADB_SECRET")
-
-	hello.Hello()
-
-	telegram.Bot(token, app_env, db_secret)
+	ctx := kong.Parse(&CLI)
+	switch ctx.Command() {
+	case "listen":
+		{
+			log.Println("Running listener")
+			scripts.Listener()
+		}
+	case "reminder":
+		{
+			log.Println("Running reminder")
+			scripts.BirthdayReminder(time.Now())
+		}
+	default:
+		panic(ctx.Command())
+	}
 }
