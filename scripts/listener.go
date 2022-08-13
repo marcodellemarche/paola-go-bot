@@ -7,14 +7,13 @@ import (
 	"paola-go-bot/telegram"
 )
 
-func Listener() {
+func Listener(debug bool) {
 	token := os.Getenv("TELEGRAM_TOKEN")
-	app_env := os.Getenv("APP_ENV")
-	db_secret := os.Getenv("FAUNADB_SECRET")
+	database_uri := os.Getenv("DATABASE_URI")
 
-	telegram.Initialize(token, app_env != "prod", db_secret)
+	telegram.Initialize(token, debug)
 
-	database.Initialize(app_env != "prod")
+	database.Initialize(database_uri, debug)
 
 	telegram.ListenToUpdates()
 }

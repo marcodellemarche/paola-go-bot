@@ -8,7 +8,7 @@ import (
 
 var bot tgbotapi.BotAPI
 
-func Initialize(token string, dev bool, db_secret string) {
+func Initialize(token string, debug bool) {
 	pBot, err := tgbotapi.NewBotAPI(token)
 	bot = *pBot
 
@@ -16,7 +16,7 @@ func Initialize(token string, dev bool, db_secret string) {
 		log.Panic(err)
 	}
 
-	if dev {
+	if debug {
 		bot.Debug = true
 	}
 

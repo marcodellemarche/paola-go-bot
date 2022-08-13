@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"time"
+	"strconv"
 
 	"paola-go-bot/scripts"
 
@@ -10,14 +10,25 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var CLI struct {
-	Listen struct {
-		SayHi bool `help:"Say hi."`
-	} `cmd help:"Remove files."`
+type Context struct {
+	Debug bool
+}
 
-	Reminder struct {
-		SayHi bool `help:"Say hi."`
-	} `cmd help:"Remind birthdays."`
+type ListenCmd struct {
+	Super bool `help:"Enable SuperPaola mode."`
+}
+
+type ReminderCmd struct {
+	Super bool `help:"Enable SuperPaola mode."`
+
+	Days string `arg name:"days" help:"How many days from today for the reminder." default:"0" type:"number"`
+}
+
+var cli struct {
+	Debug bool `help:"Enable debug mode."`
+
+	Reminder ReminderCmd `cmd help:"Remember birthdays."`
+	Listen ListenCmd   `cmd help:"Start the bot to listen for updates."`
 }
 
 func init() {
@@ -29,19 +40,23 @@ func init() {
 }
 
 func main() {
-	ctx := kong.Parse(&CLI)
-	switch ctx.Command() {
-	case "listen":
-		{
-			log.Println("Running listener")
-			scripts.Listener()
-		}
-	case "reminder":
-		{
-			log.Println("Running reminder")
-			scripts.BirthdayReminder(time.Now())
-		}
-	default:
-		panic(ctx.Command())
-	}
+	ctx := kong.Parse(&cli)
+	// Call the Run() method of the selected parsed command.
+	err := ctx.Run(&Context{Debug: cli.Debug})
+	ctx.FatalIfErrorf(err)
+}
+
+func (l *ListenCmd) Run(ctx *Context) error {
+	log.Println("listen")
+	scripts.Listener(ctx.Debug)
+
+	return nil
+}
+
+func (r *ReminderCmd) Run(ctx *Context) error {
+	log.Println("reminder", r.Days)
+	days, _ := strconv.Atoi(r.Days)
+	scripts.BirthdayReminder(days, ctx.Debug)
+
+	return nil
 }

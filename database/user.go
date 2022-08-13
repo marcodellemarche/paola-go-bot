@@ -24,12 +24,12 @@ var sqlUserDeleteById string
 var sqlUserFindById string
 
 type User struct {
-	Id      int64
-	Name    string
+	Id   int64
+	Name string
 }
 
 func UserNew(Id int64, Name string) User {
-	return User {
+	return User{
 		Id,
 		Name,
 	}

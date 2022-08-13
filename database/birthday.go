@@ -1,13 +1,13 @@
 package database
 
 import (
-	"database/sql"
+	_ "embed"
 	"fmt"
 	"log"
 	"sort"
 	"time"
 
-	_ "embed"
+	"database/sql"
 
 	_ "github.com/lib/pq"
 )
@@ -31,20 +31,20 @@ var sqlBirthdayFindByDate string
 var sqlBirthdayDeleteByName string
 
 type Birthday struct {
-	id      string
-	Name    string
-	Day     uint8
-	Month   uint8
-	date    time.Time
+	id        string
+	Name      string
+	Day       uint8
+	Month     uint8
+	date      time.Time
 	contactId int64
-	UserId int64
+	UserId    int64
 }
 
 func BirthdayNew(id string, name string, day uint8, month uint8, contactId int64, userId int64) Birthday {
 	formattedDate := fmt.Sprintf("2000-%02d-%02d", month, day)
 	date, err := time.Parse("2006-01-02", formattedDate)
 	CheckError(err)
-	
+
 	return Birthday{
 		id,
 		name,
