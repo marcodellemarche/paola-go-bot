@@ -27,11 +27,13 @@ var sqlBirthdayFindByUser string
 //go:embed birthday/find_by_date.sql
 var sqlBirthdayFindByDate string
 
+//go:embed birthday/find_by_date_and_list.sql
+var sqlBirthdayFindByDateAndList string
+
 //go:embed birthday/delete_by_name.sql
 var sqlBirthdayDeleteByName string
 
 type Birthday struct {
-	id        string
 	Name      string
 	Day       uint8
 	Month     uint8
@@ -40,30 +42,24 @@ type Birthday struct {
 	UserId    int64
 }
 
-func BirthdayNew(id string, name string, day uint8, month uint8, contactId int64, userId int64) Birthday {
-	formattedDate := fmt.Sprintf("2000-%02d-%02d", month, day)
-	date, err := time.Parse("2006-01-02", formattedDate)
-	CheckError(err)
-
-	return Birthday{
-		id,
-		name,
-		day,
-		month,
-		date,
-		contactId,
-		userId,
-	}
-}
-
-func BirthdayCreateTable() {
+func BirthdayCreateTable() bool {
 	_, err := db.Exec(sqlBirthdayCreateTable)
-	CheckError(err)
+	if err != nil {
+		log.Printf("Error creating birthday table: %s", err.Error())
+		return false
+	}
+
+	return true
 }
 
-func BirthdayDropTable() {
+func BirthdayDropTable() bool {
 	_, err := db.Exec(sqlBirthdayDropTable)
-	CheckError(err)
+	if err != nil {
+		log.Printf("Error dropping birthday table: %s", err.Error())
+		return false
+	}
+
+	return true
 }
 
 func BirthdayInsert(name string, contactId int64, day uint8, month uint8, userId int64) bool {
@@ -126,41 +122,7 @@ func BirthdayFindByUser(userId int64) ([]Birthday, bool) {
 		return nil, false
 	}
 
-	// defer rows.Close()
-
-	birthdays := make([]Birthday, 0)
-	for rows.Next() {
-		var birthday Birthday
-		var formattedDate string
-		var contactId sql.NullInt64
-
-		rows.Scan(&birthday.id, &birthday.Name, &contactId, &formattedDate, &birthday.UserId)
-		if err != nil {
-			log.Printf("Error finding birthdays from database, scan failed: %s", err.Error())
-			return nil, false
-		}
-
-		birthday.date, err = time.Parse("2006-01-02T00:00:00Z", formattedDate)
-		if err != nil {
-			log.Printf("Error finding birthdays from database, parsing date %s failed: %s", formattedDate, err.Error())
-			return nil, false
-		}
-
-		birthday.Day = uint8(birthday.date.Day())
-		birthday.Month = uint8(birthday.date.Month())
-
-		if contactId.Valid {
-			birthday.contactId = contactId.Int64
-		}
-
-		birthdays = append(birthdays, birthday)
-	}
-
-	sort.Slice(birthdays, func(i, j int) bool {
-		return birthdays[i].date.Before(birthdays[j].date)
-	})
-
-	return birthdays, true
+	return birthdayFind(rows, true)
 }
 
 func BirthdayFindByDate(day uint8, month uint8) ([]Birthday, bool) {
@@ -170,15 +132,29 @@ func BirthdayFindByDate(day uint8, month uint8) ([]Birthday, bool) {
 		return nil, false
 	}
 
-	// defer rows.Close()
+	return birthdayFind(rows, false)
+}
 
+func BirthdayFindByDateAndList(day uint8, month uint8, listId int64, subscriberId int64) ([]Birthday, bool) {
+	nullableSubscriberId := sql.NullInt64{Int64: subscriberId, Valid: subscriberId > 0}
+
+	rows, err := db.Query(sqlBirthdayFindByDateAndList, day, month, listId, nullableSubscriberId)
+	if err != nil {
+		log.Printf("Error finding birthdays from database, query failed: %s", err.Error())
+		return nil, false
+	}
+
+	return birthdayFind(rows, false)
+}
+
+func birthdayFind(rows *sql.Rows, toSort bool) ([]Birthday, bool) {
 	birthdays := make([]Birthday, 0)
 	for rows.Next() {
 		var birthday Birthday
 		var formattedDate string
 		var contactId sql.NullInt64
 
-		rows.Scan(&birthday.id, &birthday.Name, &contactId, &formattedDate, &birthday.UserId)
+		err := rows.Scan(&birthday.Name, &contactId, &formattedDate, &birthday.UserId)
 		if err != nil {
 			log.Printf("Error finding birthdays from database, scan failed: %s", err.Error())
 			return nil, false
@@ -198,6 +174,12 @@ func BirthdayFindByDate(day uint8, month uint8) ([]Birthday, bool) {
 		}
 
 		birthdays = append(birthdays, birthday)
+	}
+
+	if toSort {
+		sort.Slice(birthdays, func(i, j int) bool {
+			return birthdays[i].date.Before(birthdays[j].date)
+		})
 	}
 
 	return birthdays, true

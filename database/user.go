@@ -23,26 +23,32 @@ var sqlUserDeleteById string
 //go:embed user/find_by_id.sql
 var sqlUserFindById string
 
+//go:embed user/find_all.sql
+var sqlUserFindAll string
+
 type User struct {
 	Id   int64
 	Name string
 }
 
-func UserNew(Id int64, Name string) User {
-	return User{
-		Id,
-		Name,
-	}
-}
-
-func UserCreateTable() {
+func UserCreateTable() bool {
 	_, err := db.Exec(sqlUserCreateTable)
-	CheckError(err)
+	if err != nil {
+		log.Printf("Error creating user table: %s", err.Error())
+		return false
+	}
+
+	return true
 }
 
-func UserDropTable() {
+func UserDropTable() bool {
 	_, err := db.Exec(sqlUserDropTable)
-	CheckError(err)
+	if err != nil {
+		log.Printf("Error dropping user table: %s", err.Error())
+		return false
+	}
+
+	return true
 }
 
 func UserInsert(id int64, name string) bool {
@@ -60,7 +66,7 @@ func UserFindById(id int64) (User, bool) {
 
 	rows, err := db.Query(sqlUserFindById, id)
 	if err != nil {
-		log.Printf("Error fetching user from database, quary failed: %s", err.Error())
+		log.Printf("Error fetching user from database, query failed: %s", err.Error())
 		return user, false
 	}
 
@@ -80,7 +86,35 @@ func UserFindById(id int64) (User, bool) {
 	return user, true
 }
 
-func UserDeleteById(id int64) {
+func UserFindAll() ([]User, bool) {
+	rows, err := db.Query(sqlUserFindAll)
+	if err != nil {
+		log.Printf("Error finding users from database, query failed: %s", err.Error())
+		return nil, false
+	}
+
+	users := make([]User, 0)
+	for rows.Next() {
+		var user User
+
+		err := rows.Scan(&user.Id, &user.Name)
+		if err != nil {
+			log.Printf("Error finding users from database, scan failed: %s", err.Error())
+			return nil, false
+		}
+
+		users = append(users, user)
+	}
+
+	return users, true
+}
+
+func UserDeleteById(id int64) bool {
 	_, err := db.Exec(sqlUserDeleteById, id)
-	CheckError(err)
+	if err != nil {
+		log.Printf("Error deleting user from database, deletion failed: %s", err.Error())
+		return false
+	}
+
+	return true
 }

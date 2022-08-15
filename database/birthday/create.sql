@@ -1,7 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE IF NOT EXISTS public.birthday (
-	id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
 	"name" character varying NOT NULL,
     contact_id bigint NULL,
     date timestamp with time zone NOT NULL,

@@ -1,7 +1,7 @@
-INSERT INTO public.user
+INSERT INTO public.list
 (
-    id,
-    "name"
+    user_id,
+    subscriber_id
 )
 VALUES
 (

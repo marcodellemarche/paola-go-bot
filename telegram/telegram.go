@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"fmt"
 	"log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -24,7 +25,9 @@ func Initialize(token string, debug bool) {
 }
 
 func ListenToUpdates() {
-	log.Printf("Listening updates to commands: %+v", tgbotapi.NewSetMyCommands(commands...))
+	bot.Request(tgbotapi.NewSetMyCommands(commands...))
+
+	log.Printf("Listening updates to commands: %+v", commands)
 
 	update_config := tgbotapi.NewUpdate(0)
 	update_config.Timeout = 60
@@ -68,6 +71,11 @@ func handleUpdate(
 		GetMyBirthdays(message, c)
 	case commandForgetBirthday.Command:
 		AskWhichToForget(message, c)
+	case commandStop.Command:
+		{
+			c <- StatusUpdateNew(message.From.ID, nil)
+			return
+		}
 	default:
 		{
 			if userStatus, exists := status[userId]; exists {
@@ -100,4 +108,22 @@ func defaultAnswer(
 
 func SendMessage(message tgbotapi.MessageConfig) {
 	bot.Send(message)
+}
+
+func GetChat(userId int64) string {
+	chat, err := bot.GetChat(tgbotapi.ChatInfoConfig{ChatConfig: tgbotapi.ChatConfig{ChatID: userId}})
+	if err != nil {
+		log.Printf("Error getting chat for user %d: %s", userId, err.Error())
+		return ""
+	}
+	
+	if chat.FirstName == "" {
+		return chat.UserName
+	}
+
+	if chat.LastName == "" {
+		return chat.FirstName
+	}
+
+	return fmt.Sprintf("%s %s", chat.FirstName, chat.LastName)
 }

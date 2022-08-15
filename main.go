@@ -24,11 +24,20 @@ type ReminderCmd struct {
 	Days string `arg name:"days" help:"How many days from today for the reminder." default:"0" type:"number"`
 }
 
+type MigrationCmd struct {
+	Write bool `help:"Write into database."`
+	Token string `arg name:"token" help:"Telegram token." default:"" type:"string"`
+}
+
+type UsersCmd struct {}
+
 var cli struct {
 	Debug bool `help:"Enable debug mode."`
 
-	Reminder ReminderCmd `cmd help:"Remember birthdays."`
-	Listen ListenCmd   `cmd help:"Start the bot to listen for updates."`
+	Reminder  ReminderCmd  `cmd help:"Remember birthdays."`
+	Listen    ListenCmd    `cmd help:"Start the bot to listen for updates."`
+	Migration MigrationCmd `cmd help:"Start the DB migration."`
+	Users UsersCmd `cmd help:"Fetch users info."`
 }
 
 func init() {
@@ -57,6 +66,20 @@ func (r *ReminderCmd) Run(ctx *Context) error {
 	log.Println("reminder", r.Days)
 	days, _ := strconv.Atoi(r.Days)
 	scripts.BirthdayReminder(days, ctx.Debug)
+
+	return nil
+}
+
+func (m *MigrationCmd) Run(ctx *Context) error {
+	log.Println("migration")
+	scripts.Migration(m.Token, m.Write)
+
+	return nil
+}
+
+func (l *UsersCmd) Run(ctx *Context) error {
+	log.Println("users")
+	scripts.Users()
 
 	return nil
 }
