@@ -5,29 +5,26 @@ import (
 	"strconv"
 
 	"paola-go-bot/database"
+	"paola-go-bot/telegram/status"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 func AskForName(
 	message *tgbotapi.Message,
-	c chan<- StatusUpdate,
 	args ...string,
 ) {
 	log.Printf("Set birthday - asking for name")
 
 	reply := tgbotapi.NewMessage(message.Chat.ID, "Ok, di chi è il compleanno? (puoi pure condividere il contatto)")
-	reply.ReplyToMessageID = message.MessageID
-	reply.ReplyMarkup = emptyKeyboard
 
-	c <- StatusUpdateNew(message.From.ID, askForMonth)
+	status.SetNext(message.From.ID, askForMonth)
 
-	bot.Send(reply)
+	SendMessage(reply, nil)
 }
 
 func askForMonth(
 	message *tgbotapi.Message,
-	c chan<- StatusUpdate,
 	args ...string,
 ) {
 	log.Printf("Set birthday - received name, asking for month")
@@ -46,17 +43,14 @@ func askForMonth(
 	}
 
 	reply := tgbotapi.NewMessage(message.Chat.ID, "Ok, che mese?")
-	reply.ReplyToMessageID = message.MessageID
-	reply.ReplyMarkup = monthKeyboard
 
-	c <- StatusUpdateNew(message.From.ID, askForDay, name, contactId)
+	status.SetNext(message.From.ID, askForDay, name, contactId)
 
-	bot.Send(reply)
+	SendMessage(reply, &monthKeyboard)
 }
 
 func askForDay(
 	message *tgbotapi.Message,
-	c chan<- StatusUpdate,
 	args ...string,
 ) {
 	log.Printf("Set birthday - received month, asking for day")
@@ -64,17 +58,14 @@ func askForDay(
 	month := message.Text
 
 	reply := tgbotapi.NewMessage(message.Chat.ID, "Ok, che giorno?")
-	reply.ReplyToMessageID = message.MessageID
-	reply.ReplyMarkup = dayKeyboard
 
-	c <- StatusUpdateNew(message.From.ID, confirmNewBirthday, append(args, month)...)
+	status.SetNext(message.From.ID, confirmNewBirthday, month)
 
-	bot.Send(reply)
+	SendMessage(reply, &dayKeyboard)
 }
 
 func confirmNewBirthday(
 	message *tgbotapi.Message,
-	c chan<- StatusUpdate,
 	args ...string,
 ) {
 	log.Printf("Set birthday - received day, confirming birthday")
@@ -87,8 +78,8 @@ func confirmNewBirthday(
 	if name == "" {
 		log.Printf("Error confirming birthday, name is not valid: <empty-string>")
 		reply := tgbotapi.NewMessage(message.Chat.ID, "Oh, ma il nome non è valido!")
-		c <- StatusUpdateNew(message.From.ID, nil)
-		bot.Send(reply)
+		status.ResetNext(message.From.ID)
+		SendMessage(reply, nil)
 		return
 	}
 
@@ -96,10 +87,8 @@ func confirmNewBirthday(
 	if err != nil {
 		log.Printf("Error confirming birthday, month is not valid: %s", month)
 		reply := tgbotapi.NewMessage(message.Chat.ID, "Oh, ma il mese non è valido!")
-		reply.ReplyToMessageID = message.MessageID
-		reply.ReplyMarkup = emptyKeyboard
-		c <- StatusUpdateNew(message.From.ID, nil)
-		bot.Send(reply)
+		status.ResetNext(message.From.ID)
+		SendMessage(reply, nil)
 		return
 	}
 
@@ -107,10 +96,8 @@ func confirmNewBirthday(
 	if err != nil {
 		log.Printf("Error confirming birthday, day is not valid: %s", day)
 		reply := tgbotapi.NewMessage(message.Chat.ID, "Oh, ma il giorno non è valido!")
-		reply.ReplyToMessageID = message.MessageID
-		reply.ReplyMarkup = emptyKeyboard
-		c <- StatusUpdateNew(message.From.ID, nil)
-		bot.Send(reply)
+		status.ResetNext(message.From.ID)
+		SendMessage(reply, nil)
 		return
 	}
 
@@ -120,10 +107,8 @@ func confirmNewBirthday(
 		if err != nil {
 			log.Printf("Error confirming birthday, contact ID is not valid: %s", contactId)
 			reply := tgbotapi.NewMessage(message.Chat.ID, "Oh, ma il contatto non è valido!")
-			reply.ReplyToMessageID = message.MessageID
-			reply.ReplyMarkup = emptyKeyboard
-			c <- StatusUpdateNew(message.From.ID, nil)
-			bot.Send(reply)
+			status.ResetNext(message.From.ID)
+			SendMessage(reply, nil)
 			return
 		}
 	}
@@ -131,19 +116,15 @@ func confirmNewBirthday(
 	ok := database.BirthdayInsert(name, parsedContactId, uint8(parsedDay), uint8(parsedMonth), message.From.ID)
 	if !ok {
 		log.Printf("Error confirming birthday, could not update database")
-		reply := tgbotapi.NewMessage(message.Chat.ID, "So 'ncazzo io, ma qualcosa è andato storto 🥲")
-		reply.ReplyToMessageID = message.MessageID
-		reply.ReplyMarkup = emptyKeyboard
-		c <- StatusUpdateNew(message.From.ID, nil)
-		bot.Send(reply)
+		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
+		status.ResetNext(message.From.ID)
+		SendMessage(reply, nil)
 		return
 	}
 
 	reply := tgbotapi.NewMessage(message.Chat.ID, "Ok, me lo ricorderò ✌️")
-	reply.ReplyToMessageID = message.MessageID
-	reply.ReplyMarkup = emptyKeyboard
 
-	c <- StatusUpdateNew(message.From.ID, nil)
+	status.ResetNext(message.From.ID)
 
-	bot.Send(reply)
+	SendMessage(reply, nil)
 }

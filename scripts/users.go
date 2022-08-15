@@ -22,7 +22,7 @@ func Users() {
 
 		telegram.Initialize(token, false)
 
-		name := telegram.GetChat(user.Id)
+		name := telegram.GetNameFromUserId(user.Id)
 
 		log.Printf("Found name: %s", name)
 	}

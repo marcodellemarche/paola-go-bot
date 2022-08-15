@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"log"
 
+	"paola-go-bot/telegram/status"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 var bot tgbotapi.BotAPI
+
+var errorMessage = "So 'ncazzo io, ma qualcosa è andato storto 🥲"
 
 func Initialize(token string, debug bool) {
 	pBot, err := tgbotapi.NewBotAPI(token)
@@ -32,85 +36,59 @@ func ListenToUpdates() {
 	update_config := tgbotapi.NewUpdate(0)
 	update_config.Timeout = 60
 
-	statusMap, c := make(StatusMap), make(chan StatusUpdate)
-
-	go manageStatus(statusMap, c)
+	go status.Manage()
 
 	updates := bot.GetUpdatesChan(update_config)
 
 	for update := range updates {
 		if update.Message != nil {
-			go handleUpdate(update.Message, statusMap, c)
+			go handleUpdate(update.Message)
 		}
 	}
 }
 
 func handleUpdate(
 	message *tgbotapi.Message,
-	status StatusMap,
-	c chan<- StatusUpdate,
 ) {
 	log.Printf("[%s] %s", message.From.UserName, message.Text)
 
 	userId := message.From.ID
 
 	if message.Command() == commandStart.Command {
-		StartUser(message, c)
+		StartUser(message)
 		return
 	}
 
-	ok := CheckIfNewUser(message, status, c, userId)
+	ok := CheckIfNewUser(message, userId)
 	if !ok {
 		return
 	}
 
 	switch message.Command() {
 	case commandRememberBirthday.Command:
-		AskForName(message, c)
+		AskForName(message)
 	case commandGetBirthdays.Command:
-		GetMyBirthdays(message, c)
+		GetMyBirthdays(message)
 	case commandForgetBirthday.Command:
-		AskWhichToForget(message, c)
+		AskWhichToForget(message)
 	case commandStop.Command:
-		{
-			c <- StatusUpdateNew(message.From.ID, nil)
-			return
-		}
+		Stop(message)
 	default:
-		{
-			if userStatus, exists := status[userId]; exists {
-				if userStatus.next != nil {
-					userStatus.next(message, c, userStatus.args...)
-				} else {
-					log.Printf("User ID %d has next callback set to nil", userId)
-					defaultAnswer(message, c)
-				}
-			} else {
-				log.Printf("User ID %d still not present into status map", userId)
-				defaultAnswer(message, c)
-			}
-		}
+		CheckNextActionOrDefault(message, userId)
 	}
 }
 
-func defaultAnswer(
-	message *tgbotapi.Message,
-	c chan<- StatusUpdate,
-) {
-	reply := tgbotapi.NewMessage(message.Chat.ID, randomInsult())
-	reply.ReplyToMessageID = message.MessageID
-	reply.ReplyMarkup = emptyKeyboard
+func SendMessage(message tgbotapi.MessageConfig, keyboard *tgbotapi.ReplyKeyboardMarkup) {
+	if keyboard == nil {
+		message.ReplyMarkup = emptyKeyboard
+	} else {
+		message.ReplyMarkup = keyboard
+	}
 
-	c <- StatusUpdateNew(message.From.ID, nil)
-
-	bot.Send(reply)
-}
-
-func SendMessage(message tgbotapi.MessageConfig) {
 	bot.Send(message)
 }
 
-func GetChat(userId int64) string {
+func GetNameFromUserId(userId int64) string {
 	chat, err := bot.GetChat(tgbotapi.ChatInfoConfig{ChatConfig: tgbotapi.ChatConfig{ChatID: userId}})
 	if err != nil {
 		log.Printf("Error getting chat for user %d: %s", userId, err.Error())
@@ -126,4 +104,32 @@ func GetChat(userId int64) string {
 	}
 
 	return fmt.Sprintf("%s %s", chat.FirstName, chat.LastName)
+}
+
+func Stop(
+	message *tgbotapi.Message,
+) {
+	status.ResetNext(message.From.ID)
+}
+
+func CheckNextActionOrDefault(
+	message *tgbotapi.Message,
+	userId int64,
+) {
+	if userStatus, exists := status.Get(userId); exists {
+		if userStatus.Next != nil {
+			userStatus.Next(message, userStatus.Args...)
+			return
+		} else {
+			log.Printf("User ID %d has next callback set to nil", userId)
+		}
+	} else {
+		log.Printf("User ID %d still not present into status map", userId)
+	}
+
+	reply := tgbotapi.NewMessage(message.Chat.ID, randomInsult())
+
+	status.ResetNext(message.From.ID)
+
+	SendMessage(reply, nil)
 }

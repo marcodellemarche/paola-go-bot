@@ -38,7 +38,7 @@ func BirthdayReminder(days int, debug bool) {
 	for _, birthday := range birthdays {
 		log.Printf("Notifying %d of %s's birthday", birthday.UserId, birthday.Name)
 		message := tgbotapi.NewMessage(birthday.UserId, fmt.Sprintf("%s è il compleanno di %s!", printableDay, birthday.Name))
-		telegram.SendMessage(message)
+		telegram.SendMessage(message, nil)
 	}
 
 	birthdays, ok = database.BirthdayFindByDateAndList(uint8(date.Day()), uint8(date.Month()), SuperPaolaId, 0)
@@ -50,6 +50,6 @@ func BirthdayReminder(days int, debug bool) {
 	for _, birthday := range birthdays {
 		log.Printf("[SuperPaola] Notifying %d of %s's birthday", birthday.UserId, birthday.Name)
 		message := tgbotapi.NewMessage(birthday.UserId, fmt.Sprintf("[SuperPaola] %s è il compleanno di %s!", printableDay, birthday.Name))
-		telegram.SendMessage(message)
+		telegram.SendMessage(message, nil)
 	}
 }

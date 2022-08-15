@@ -36,11 +36,3 @@ var commands = []tgbotapi.BotCommand{
 	commandGetBirthdays,
 	commandStop,
 }
-
-/*
-start - Iniziamo da qui
-ricorda - Ricorda un compleanno
-dimentica - Dimentica un compleanno
-compleanni - Lista dei compleanni da ricordare
-stop - Interrompi il comando attuale
-*/

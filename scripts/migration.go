@@ -64,7 +64,7 @@ func Migration(token string, write bool) {
 	for i, chat := range chats {
 		log.Printf("Chat %d: %d - %s - super %v", i, chat.ChatId, chat.Name, chat.Trust)
 
-		name := telegram.GetChat(chat.ChatId)
+		name := telegram.GetNameFromUserId(chat.ChatId)
 
 		log.Printf("- name: %s", name)
 
