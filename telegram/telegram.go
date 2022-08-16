@@ -52,7 +52,7 @@ func handleUpdate(
 ) {
 	log.Printf("[%s] %s", message.From.UserName, message.Text)
 
-	userId := message.From.ID
+	userId := message.Chat.ID
 
 	if message.Command() == commandStart.Command {
 		StartUser(message)
@@ -66,11 +66,13 @@ func handleUpdate(
 
 	switch message.Command() {
 	case commandRememberBirthday.Command:
-		AskForName(message)
+		AskForBirthdayName(message)
 	case commandGetBirthdays.Command:
 		GetMyBirthdays(message)
 	case commandForgetBirthday.Command:
-		AskWhichToForget(message)
+		AskWhichBirthdayToForget(message)
+	case commandSubscribeList.Command:
+		AskWhichListToSubscribe(message)
 	case commandStop.Command:
 		Stop(message)
 	default:
@@ -95,10 +97,6 @@ func GetNameFromUserId(userId int64) string {
 		return ""
 	}
 	
-	if chat.FirstName == "" {
-		return chat.UserName
-	}
-
 	if chat.LastName == "" {
 		return chat.FirstName
 	}
@@ -109,7 +107,7 @@ func GetNameFromUserId(userId int64) string {
 func Stop(
 	message *tgbotapi.Message,
 ) {
-	status.ResetNext(message.From.ID)
+	status.ResetNext(message.Chat.ID)
 }
 
 func CheckNextActionOrDefault(
@@ -129,7 +127,7 @@ func CheckNextActionOrDefault(
 
 	reply := tgbotapi.NewMessage(message.Chat.ID, randomInsult())
 
-	status.ResetNext(message.From.ID)
+	status.ResetNext(message.Chat.ID)
 
 	SendMessage(reply, nil)
 }

@@ -27,8 +27,8 @@ var sqlUserFindById string
 var sqlUserFindAll string
 
 type User struct {
-	Id   int64
-	Name string
+	Id       int64
+	Name     string
 }
 
 func UserCreateTable() bool {

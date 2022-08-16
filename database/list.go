@@ -26,6 +26,7 @@ var sqlListFindByUser string
 type List struct {
 	UserId       int64
 	SubscriberId int64
+	UserName     string
 }
 
 func ListCreateTable() bool {
@@ -48,8 +49,8 @@ func ListDropTable() bool {
 	return true
 }
 
-func ListInsert(userId int64, subscriberId int64) bool {
-	_, err := db.Exec(sqlListInsert, userId, subscriberId)
+func ListInsert(userId int64, subscriberId int64, userName string) bool {
+	_, err := db.Exec(sqlListInsert, userId, subscriberId, userName)
 	if err != nil {
 		log.Printf("Error inserting list into database, list insertion failed: %s", err.Error())
 		return false
@@ -74,7 +75,7 @@ func ListFindByUser(userId int64) (List, bool) {
 
 	defer rows.Close()
 
-	rows.Scan(&list.UserId, &list.SubscriberId)
+	rows.Scan(&list.UserId, &list.SubscriberId, &list.UserName)
 	if err != nil {
 		log.Printf("Error fetching list from database, scan failed: %s", err.Error())
 		return list, false

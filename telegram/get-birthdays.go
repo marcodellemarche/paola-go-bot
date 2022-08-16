@@ -15,22 +15,42 @@ func GetMyBirthdays(
 ) {
 	log.Printf("Get birthdays")
 
-	birthdays, ok := database.BirthdayFindByUser(message.From.ID)
+	birthdays, ok := database.BirthdayFind(0, 0, message.Chat.ID)
 	if !ok {
 		log.Printf("Error getting birthdays, could not fetch database")
 		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
-		status.ResetNext(message.From.ID)
+		status.ResetNext(message.Chat.ID)
 		SendMessage(reply, nil)
 		return
 	}
-
+	
 	reply := tgbotapi.NewMessage(message.Chat.ID, "Tiè, ecco i compleanni:\n")
 
 	for _, birthday := range birthdays {
 		reply.Text += fmt.Sprintf("\n%s - %02d/%02d", birthday.Name, birthday.Day, birthday.Month)
 	}
 
-	status.ResetNext(message.From.ID)
+	birthdaysFromList, ok := database.BirthdayFindByList(0, 0, 0, message.Chat.ID)
+	if !ok {
+		log.Printf("Error getting birthdays from list, could not fetch database")
+		return
+	}
+
+	birthdays = append(birthdays, birthdaysFromList...)
+
+	if len(birthdays) == 0 {
+		log.Printf("Warning getting birthdays, no birthdays found yet")
+		reply := tgbotapi.NewMessage(message.Chat.ID, "Non ci sono compleanni ancora 🥲")
+		status.ResetNext(message.Chat.ID)
+		SendMessage(reply, nil)
+		return
+	}
+
+	for _, birthday := range birthdays {
+		reply.Text += fmt.Sprintf("\n[%s] %s - %02d/%02d", birthday.UserName, birthday.Name, birthday.Day, birthday.Month)
+	}
+
+	status.ResetNext(message.Chat.ID)
 
 	SendMessage(reply, nil)
 }

@@ -10,20 +10,20 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func AskForName(
+func AskForBirthdayName(
 	message *tgbotapi.Message,
 	args ...string,
 ) {
 	log.Printf("Set birthday - asking for name")
 
-	reply := tgbotapi.NewMessage(message.Chat.ID, "Ok, di chi è il compleanno? (puoi pure condividere il contatto)")
+	reply := tgbotapi.NewMessage(message.Chat.ID, "Ok, di chi è il compleanno? (puoi anche condividere il contatto Telegram)")
 
-	status.SetNext(message.From.ID, askForMonth)
+	status.SetNext(message.Chat.ID, askForBirthdayMonth)
 
 	SendMessage(reply, nil)
 }
 
-func askForMonth(
+func askForBirthdayMonth(
 	message *tgbotapi.Message,
 	args ...string,
 ) {
@@ -44,12 +44,12 @@ func askForMonth(
 
 	reply := tgbotapi.NewMessage(message.Chat.ID, "Ok, che mese?")
 
-	status.SetNext(message.From.ID, askForDay, name, contactId)
+	status.SetNext(message.Chat.ID, askForBirthdayDay, name, contactId)
 
 	SendMessage(reply, &monthKeyboard)
 }
 
-func askForDay(
+func askForBirthdayDay(
 	message *tgbotapi.Message,
 	args ...string,
 ) {
@@ -59,7 +59,7 @@ func askForDay(
 
 	reply := tgbotapi.NewMessage(message.Chat.ID, "Ok, che giorno?")
 
-	status.SetNext(message.From.ID, confirmNewBirthday, month)
+	status.SetNext(message.Chat.ID, confirmNewBirthday, month)
 
 	SendMessage(reply, &dayKeyboard)
 }
@@ -78,7 +78,7 @@ func confirmNewBirthday(
 	if name == "" {
 		log.Printf("Error confirming birthday, name is not valid: <empty-string>")
 		reply := tgbotapi.NewMessage(message.Chat.ID, "Oh, ma il nome non è valido!")
-		status.ResetNext(message.From.ID)
+		status.ResetNext(message.Chat.ID)
 		SendMessage(reply, nil)
 		return
 	}
@@ -87,7 +87,7 @@ func confirmNewBirthday(
 	if err != nil {
 		log.Printf("Error confirming birthday, month is not valid: %s", month)
 		reply := tgbotapi.NewMessage(message.Chat.ID, "Oh, ma il mese non è valido!")
-		status.ResetNext(message.From.ID)
+		status.ResetNext(message.Chat.ID)
 		SendMessage(reply, nil)
 		return
 	}
@@ -96,7 +96,7 @@ func confirmNewBirthday(
 	if err != nil {
 		log.Printf("Error confirming birthday, day is not valid: %s", day)
 		reply := tgbotapi.NewMessage(message.Chat.ID, "Oh, ma il giorno non è valido!")
-		status.ResetNext(message.From.ID)
+		status.ResetNext(message.Chat.ID)
 		SendMessage(reply, nil)
 		return
 	}
@@ -107,24 +107,24 @@ func confirmNewBirthday(
 		if err != nil {
 			log.Printf("Error confirming birthday, contact ID is not valid: %s", contactId)
 			reply := tgbotapi.NewMessage(message.Chat.ID, "Oh, ma il contatto non è valido!")
-			status.ResetNext(message.From.ID)
+			status.ResetNext(message.Chat.ID)
 			SendMessage(reply, nil)
 			return
 		}
 	}
 
-	ok := database.BirthdayInsert(name, parsedContactId, uint8(parsedDay), uint8(parsedMonth), message.From.ID)
+	ok := database.BirthdayInsert(name, parsedContactId, uint8(parsedDay), uint8(parsedMonth), message.Chat.ID)
 	if !ok {
 		log.Printf("Error confirming birthday, could not update database")
 		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
-		status.ResetNext(message.From.ID)
+		status.ResetNext(message.Chat.ID)
 		SendMessage(reply, nil)
 		return
 	}
 
 	reply := tgbotapi.NewMessage(message.Chat.ID, "Ok, me lo ricorderò ✌️")
 
-	status.ResetNext(message.From.ID)
+	status.ResetNext(message.Chat.ID)
 
 	SendMessage(reply, nil)
 }

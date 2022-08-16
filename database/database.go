@@ -25,11 +25,7 @@ func Initialize(psqlconn string, debug bool) {
 
 	log.Println("DB connected!")
 
-	if debug {
-		BirthdayDropTable()
-		UserDropTable()
-	}
-
 	UserCreateTable()
 	BirthdayCreateTable()
+	ListCreateTable()
 }

@@ -26,14 +26,17 @@ type User struct {
 
 type Chat struct {
 	// _id    string `json:"_id"`
-	ChatId int64  `json:"chatId"`
-	Name   string `json:"name"`
-	Trust  bool   `json:"trust"`
-	Users  []User `json:"users"`
+	ChatId   int64  `json:"chatId"`
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Trust    bool   `json:"trust"`
+	Users    []User `json:"users"`
 	// __v    int64  `json:"__v"`
 }
 
 var SuperPaolaId int64 = 302635332
+
+var SuperPaolaName string = "Paola"
 
 func Migration(token string, write bool) {
 	if token == "" {
@@ -56,8 +59,10 @@ func Migration(token string, write bool) {
 
 	telegram.Initialize(token, false)
 
-	database.UserInsert(SuperPaolaId, "SuperPaola")
-
+	if write {
+		database.UserInsert(SuperPaolaId, SuperPaolaName)
+	}
+	
 	var chats []Chat
 	json.Unmarshal([]byte(jsonMigrationChats), &chats)
 
@@ -74,7 +79,7 @@ func Migration(token string, write bool) {
 
 		if chat.Trust {
 			if write {
-				database.ListInsert(SuperPaolaId, chat.ChatId)
+				database.ListInsert(SuperPaolaId, chat.ChatId, SuperPaolaName)
 			}
 		}
 

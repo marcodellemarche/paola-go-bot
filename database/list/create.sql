@@ -3,6 +3,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TABLE IF NOT EXISTS public.list (
 	user_id bigint NOT NULL,
 	subscriber_id bigint NOT NULL,
+    user_name character varying NOT NULL,
     CONSTRAINT "FK_list_user"
         FOREIGN KEY (user_id)
             REFERENCES public.user (id),

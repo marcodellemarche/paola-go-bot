@@ -9,16 +9,24 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func AskWhichToForget(
+func AskWhichBirthdayToForget(
 	message *tgbotapi.Message,
 ) {
 	log.Printf("Delete birthdays - ask which one to delete")
 
-	birthdays, ok := database.BirthdayFindByUser(message.From.ID)
+	birthdays, ok := database.BirthdayFind(0, 0, message.Chat.ID)
 	if !ok {
 		log.Printf("Error deleting birthdays, could not fetch database")
 		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
-		status.ResetNext(message.From.ID)
+		status.ResetNext(message.Chat.ID)
+		SendMessage(reply, nil)
+		return
+	}
+
+	if len(birthdays) == 0 {
+		log.Printf("Warning getting birthdays, no birthdays found yet")
+		reply := tgbotapi.NewMessage(message.Chat.ID, "Non ci sono compleanni ancora 🥲")
+		status.ResetNext(message.Chat.ID)
 		SendMessage(reply, nil)
 		return
 	}
@@ -31,7 +39,7 @@ func AskWhichToForget(
 
 	reply := tgbotapi.NewMessage(message.Chat.ID, "Ok, quale?")
 
-	status.SetNext(message.From.ID, confirmDeletedBirthday)
+	status.SetNext(message.Chat.ID, confirmDeletedBirthday)
 
 	birthdaysKeyboard := keyboard(rows...)
 
@@ -46,18 +54,18 @@ func confirmDeletedBirthday(
 
 	name := message.Text
 
-	ok := database.BirthdayDeleteByName(name, message.From.ID)
+	ok := database.BirthdayDeleteByName(name, message.Chat.ID)
 	if !ok {
 		log.Printf("Error deleting birthdays, could not update database")
 		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
-		status.ResetNext(message.From.ID)
+		status.ResetNext(message.Chat.ID)
 		SendMessage(reply, nil)
 		return
 	}
 
 	reply := tgbotapi.NewMessage(message.Chat.ID, "Ok, me lo dimenticherò ✌️")
 
-	status.ResetNext(message.From.ID)
+	status.ResetNext(message.Chat.ID)
 
 	SendMessage(reply, nil)
 }

@@ -24,6 +24,11 @@ var commandGetBirthdays = tgbotapi.BotCommand{
 	Description: "Lista dei compleanni da ricordare",
 }
 
+var commandSubscribeList = tgbotapi.BotCommand{
+	Command: "iscriviti",
+	Description: "Ricevi i compleanni di un tuo amico",
+}
+
 var commandStop = tgbotapi.BotCommand{
 	Command: "stop",
 	Description: "Interrompi il comando attuale",
@@ -34,5 +39,6 @@ var commands = []tgbotapi.BotCommand{
 	commandRememberBirthday,
 	commandForgetBirthday,
 	commandGetBirthdays,
+	commandSubscribeList,
 	commandStop,
 }

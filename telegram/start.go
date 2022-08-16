@@ -14,24 +14,24 @@ func CheckIfNewUser(
 	message *tgbotapi.Message,
 	userId int64,
 ) bool {
-	user, ok := database.UserFindById(message.From.ID)
+	user, ok := database.UserFindById(message.Chat.ID)
 	if !ok {
 		log.Printf("Error finding user, could not fetch database")
 		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
-		status.ResetNext(message.From.ID)
+		status.ResetNext(message.Chat.ID)
 		SendMessage(reply, nil)
 		return false
 	}
 
 	if user.Id == 0 {
 		reply := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Te sei nuovo, inizia un po' con /%s", commandStart.Command))
-		status.ResetNext(message.From.ID)
+		status.ResetNext(message.Chat.ID)
 		SendMessage(reply, nil)
 		return false
 	}
 
 	if _, exists := status.Get(userId); !exists {
-		status.ResetNext(message.From.ID)
+		status.ResetNext(message.Chat.ID)
 	}
 
 	return true
@@ -42,11 +42,18 @@ func StartUser(
 ) {
 	log.Printf("Start user")
 
-	ok := database.UserInsert(message.From.ID, message.From.FirstName)
+	var name string
+	if message.From.LastName == "" {
+		name = message.From.FirstName
+	} else {
+		name = fmt.Sprintf("%s %s", message.From.FirstName, message.From.LastName)
+	}
+
+	ok := database.UserInsert(message.Chat.ID, name)
 	if !ok {
-		log.Printf("Error creating new user, could not updte database")
+		log.Printf("Error creating new user, could not update database")
 		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
-		status.ResetNext(message.From.ID)
+		status.ResetNext(message.Chat.ID)
 		SendMessage(reply, nil)
 		return
 	}
@@ -55,7 +62,7 @@ func StartUser(
 
 	reply := tgbotapi.NewMessage(message.Chat.ID, welcomeMessage)
 
-	status.ResetNext(message.From.ID)
+	status.ResetNext(message.Chat.ID)
 
 	SendMessage(reply, nil)
 }
