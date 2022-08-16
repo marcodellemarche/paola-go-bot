@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 	"log"
-	"sort"
 	"time"
 
 	"database/sql"
@@ -30,6 +29,8 @@ var sqlBirthdayFindByList string
 //go:embed birthday/delete_by_name.sql
 var sqlBirthdayDeleteByName string
 
+var BaseYear = 2000
+
 type Birthday struct {
 	Name      string
 	Day       uint8
@@ -39,6 +40,16 @@ type Birthday struct {
 	UserId    int64
 	ListId    int64
 	UserName  string
+}
+
+func (b *Birthday) Passed() bool {
+	parsedNow := time.Now().AddDate(BaseYear - time.Now().Year(), 0, 0)
+
+	return b.date.Before(parsedNow)
+}
+
+func (b *Birthday) Before(a *Birthday) bool {
+	return b.date.Before(a.date)
 }
 
 func BirthdayCreateTable() bool {
@@ -72,7 +83,7 @@ func BirthdayInsert(name string, contactId int64, day uint8, month uint8, userId
 		return false
 	}
 
-	formattedDate := fmt.Sprintf("2000-%02d-%02d", month, day)
+	formattedDate := fmt.Sprintf("%d-%02d-%02d", BaseYear, month, day)
 
 	date, err := time.Parse("2006-01-02", formattedDate)
 	if err != nil {
@@ -181,10 +192,6 @@ func birthdayFind(rows *sql.Rows) ([]Birthday, bool) {
 
 		birthdays = append(birthdays, birthday)
 	}
-
-	sort.Slice(birthdays, func(i, j int) bool {
-		return birthdays[i].date.Before(birthdays[j].date)
-	})
 
 	return birthdays, true
 }
