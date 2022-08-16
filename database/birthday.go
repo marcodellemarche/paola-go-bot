@@ -115,8 +115,8 @@ func BirthdayInsert(name string, contactId int64, day uint8, month uint8, userId
 }
 
 func BirthdayFind(day uint8, month uint8, userId int64) ([]Birthday, bool) {
-	nullableDay := sql.NullByte{Byte: day, Valid: day > 0}
-	nullableMonth := sql.NullByte{Byte: month, Valid: month > 0}
+	nullableDay := sql.NullInt64{Int64: int64(day), Valid: day > 0}
+	nullableMonth := sql.NullInt64{Int64: int64(month), Valid: month > 0}
 	nullableUserId := sql.NullInt64{Int64: userId, Valid: userId > 0}
 
 	rows, err := db.Query(sqlBirthdayFind, nullableDay, nullableMonth, nullableUserId)
@@ -129,8 +129,8 @@ func BirthdayFind(day uint8, month uint8, userId int64) ([]Birthday, bool) {
 }
 
 func BirthdayFindByList(day uint8, month uint8, listId int64, subscriberId int64) ([]Birthday, bool) {
-	nullableDay := sql.NullByte{Byte: day, Valid: day > 0}
-	nullableMonth := sql.NullByte{Byte: month, Valid: month > 0}
+	nullableDay := sql.NullInt64{Int64: int64(day), Valid: day > 0}
+	nullableMonth := sql.NullInt64{Int64: int64(month), Valid: month > 0}
 	nullableListId := sql.NullInt64{Int64: listId, Valid: listId > 0}
 	nullableSubscriberId := sql.NullInt64{Int64: subscriberId, Valid: subscriberId > 0}
 

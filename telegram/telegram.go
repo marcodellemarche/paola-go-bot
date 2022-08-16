@@ -14,6 +14,10 @@ var bot tgbotapi.BotAPI
 var errorMessage = "So 'ncazzo io, ma qualcosa è andato storto 🥲"
 
 func Initialize(token string, debug bool) {
+	if token == "" {
+		log.Fatal("Missing Telegram token")
+	}
+
 	pBot, err := tgbotapi.NewBotAPI(token)
 	bot = *pBot
 

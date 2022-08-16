@@ -39,6 +39,6 @@ var commands = []tgbotapi.BotCommand{
 	commandRememberBirthday,
 	commandForgetBirthday,
 	commandGetBirthdays,
-	commandSubscribeList,
+	// commandSubscribeList,
 	commandStop,
 }

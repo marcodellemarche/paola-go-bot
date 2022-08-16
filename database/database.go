@@ -10,9 +10,13 @@ import (
 
 var db sql.DB
 
-func Initialize(psqlconn string, debug bool) {
-	// psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=require", host, port, user, password, dbname)
-	pDb, err := sql.Open("postgres", psqlconn)
+func Initialize(databaseUri string, debug bool) {
+	if databaseUri == "" {
+		log.Fatal("Missing database URI")
+	}
+
+	// databaseUri := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=require", host, port, user, password, dbname)
+	pDb, err := sql.Open("postgres", databaseUri)
 	db = *pDb
 	if err != nil {
 		log.Fatalf("Error opening database: %s", err.Error())
