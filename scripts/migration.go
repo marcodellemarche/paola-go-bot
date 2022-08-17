@@ -44,9 +44,9 @@ func Migration(token string, write bool) {
 	}
 
 	if write {
-		database_uri := os.Getenv("DATABASE_URI")
+		DATABASE_URL := os.Getenv("DATABASE_URL")
 
-		database.Initialize(database_uri, false)
+		database.Initialize(DATABASE_URL, false)
 
 		database.ListDropTable()
 		database.BirthdayDropTable()

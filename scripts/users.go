@@ -11,9 +11,9 @@ import (
 
 func Users() {
 	token := os.Getenv("TELEGRAM_TOKEN")
-	database_uri := os.Getenv("DATABASE_URI")
+	DATABASE_URL := os.Getenv("DATABASE_URL")
 
-	database.Initialize(database_uri, false)
+	database.Initialize(DATABASE_URL, false)
 
 	users, _ := database.UserFindAll()
 

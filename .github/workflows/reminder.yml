@@ -18,9 +18,9 @@ jobs:
         run: go run . reminder
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          DATABASE_URI: ${{ secrets.DATABASE_URI }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       - name: Remind birthdays 3 days in advance
         run: go run . reminder 3
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          DATABASE_URI: ${{ secrets.DATABASE_URI }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

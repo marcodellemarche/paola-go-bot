@@ -9,11 +9,11 @@ import (
 
 func Listener(debug bool) {
 	token := os.Getenv("TELEGRAM_TOKEN")
-	database_uri := os.Getenv("DATABASE_URI")
+	DATABASE_URL := os.Getenv("DATABASE_URL")
 
 	telegram.Initialize(token, debug)
 
-	database.Initialize(database_uri, debug)
+	database.Initialize(DATABASE_URL, debug)
 
 	telegram.ListenToUpdates()
 }
