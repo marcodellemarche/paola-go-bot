@@ -2,7 +2,7 @@
 
 ## Available commands
 
-Quick note here: remember to add a trailing `-a paola-go-bot` to the command, if you run it from outside this project folder.
+Quick note here: remember to add a trailing `-a paola-go-bot` to each command, if you run it from outside this project folder.
 
 - Check the status of process:
 
@@ -38,4 +38,10 @@ heroku run reminder
 
 ```bash
 heroku run reminder 3
+```
+
+- Run listener locally:
+
+```bash
+go build -o bin/paola-go-bot && heroku local worker=1
 ```
