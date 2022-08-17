@@ -1,2 +1,2 @@
-worker: bin/paola-go-bot listen
-clock:  bin/paola-go-bot reminder
+worker:   bin/paola-go-bot listen
+reminder: bin/paola-go-bot reminder
