@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"strconv"
 
 	"paola-go-bot/scripts"
@@ -66,6 +67,8 @@ func (r *ReminderCmd) Run(ctx *Context) error {
 	log.Println("reminder", r.Days)
 	days, _ := strconv.Atoi(r.Days)
 	scripts.BirthdayReminder(days, ctx.Debug)
+	
+	os.Exit(0)
 
 	return nil
 }
