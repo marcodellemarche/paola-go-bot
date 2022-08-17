@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
 	"strconv"
 
 	"paola-go-bot/scripts"
@@ -26,11 +25,11 @@ type ReminderCmd struct {
 }
 
 type MigrationCmd struct {
-	Write bool `help:"Write into database."`
+	Write bool   `help:"Write into database."`
 	Token string `arg name:"token" help:"Telegram token." default:"" type:"string"`
 }
 
-type UsersCmd struct {}
+type UsersCmd struct{}
 
 var cli struct {
 	Debug bool `help:"Enable debug mode."`
@@ -38,7 +37,7 @@ var cli struct {
 	Reminder  ReminderCmd  `cmd help:"Remember birthdays."`
 	Listen    ListenCmd    `cmd help:"Start the bot to listen for updates."`
 	Migration MigrationCmd `cmd help:"Start the DB migration."`
-	Users UsersCmd `cmd help:"Fetch users info."`
+	Users     UsersCmd     `cmd help:"Fetch users info."`
 }
 
 func init() {
@@ -67,8 +66,6 @@ func (r *ReminderCmd) Run(ctx *Context) error {
 	log.Println("reminder", r.Days)
 	days, _ := strconv.Atoi(r.Days)
 	scripts.BirthdayReminder(days, ctx.Debug)
-	
-	os.Exit(0)
 
 	return nil
 }
