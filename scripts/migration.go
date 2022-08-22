@@ -12,12 +12,6 @@ import (
 	"paola-go-bot/telegram"
 )
 
-//go:embed chats.json
-var jsonMigrationChats string
-
-//go:embed super.json
-var jsonMigrationSuper string
-
 type User struct {
 	// _id      string `json:"_id"`
 	Name     string `json:"name"`
@@ -43,6 +37,16 @@ func Migration(token string, write bool) {
 		token = os.Getenv("TELEGRAM_TOKEN")
 	}
 
+	jsonMigrationChats, err := os.ReadFile("chats.json")
+    if err != nil {
+        log.Fatalf("Error loading 'chats.json' file: %s", err.Error())
+    }
+
+	jsonMigrationSuper, err := os.ReadFile("super.json")
+    if err != nil {
+        log.Fatalf("Error loading 'super.json' file: %s", err.Error())
+    }
+
 	if write {
 		DATABASE_URL := os.Getenv("DATABASE_URL")
 
@@ -64,7 +68,7 @@ func Migration(token string, write bool) {
 	}
 	
 	var chats []Chat
-	json.Unmarshal([]byte(jsonMigrationChats), &chats)
+	json.Unmarshal(jsonMigrationChats, &chats)
 
 	for i, chat := range chats {
 		log.Printf("Chat %d: %d - %s - super %v", i, chat.ChatId, chat.Name, chat.Trust)
