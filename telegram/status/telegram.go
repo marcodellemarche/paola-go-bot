@@ -4,10 +4,15 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-type NextFunc func(message *tgbotapi.Message, args ...string)
+type NextCommand func(message *tgbotapi.Message, args ...string) CommandResponse
+
+type CommandResponse struct {
+	Reply *tgbotapi.MessageConfig
+	Keyboard *tgbotapi.ReplyKeyboardMarkup
+}
 
 type TelegramStatus struct {
-	Next NextFunc
+	Next NextCommand
 	Args []string
 }
 

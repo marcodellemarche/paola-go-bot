@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"log"
 
+	"paola-go-bot/telegram/commands"
 	"paola-go-bot/telegram/status"
+	"paola-go-bot/telegram/utils"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 var bot tgbotapi.BotAPI
-
-var errorMessage = "So 'ncazzo io, ma qualcosa è andato storto 🥲"
 
 func Initialize(token string, debug bool) {
 	if token == "" {
@@ -33,9 +33,9 @@ func Initialize(token string, debug bool) {
 }
 
 func ListenToUpdates() {
-	bot.Request(tgbotapi.NewSetMyCommands(commands...))
+	bot.Request(tgbotapi.NewSetMyCommands(commands.CommandsEnabled...))
 
-	log.Printf("Listening updates to commands: %+v", commands)
+	log.Printf("Listening updates to commands: %+v", commands.CommandsEnabled)
 
 	update_config := tgbotapi.NewUpdate(0)
 	update_config.Timeout = 60
@@ -51,42 +51,49 @@ func ListenToUpdates() {
 	}
 }
 
-func handleUpdate(
-	message *tgbotapi.Message,
-) {
+func handleUpdate(message *tgbotapi.Message) {
 	log.Printf("[%s] %s", message.From.UserName, message.Text)
 
 	userId := message.Chat.ID
 
-	if message.Command() == commandStart.Command {
-		StartUser(message)
+	var response status.CommandResponse
+
+	if message.Command() == commands.Start.Name {
+		response = commands.Start.Handle(message)
+		SendMessage(response.Reply, response.Keyboard)
 		return
 	}
 
-	ok := CheckIfNewUser(message, userId)
-	if !ok {
+	if response = commands.CheckIfNewUser(message, userId); response.Reply != nil {
+		SendMessage(response.Reply, response.Keyboard)
 		return
 	}
 
 	switch message.Command() {
-	case commandRememberBirthday.Command:
-		AskForBirthdayName(message)
-	case commandGetBirthdays.Command:
-		GetMyBirthdays(message)
-	case commandForgetBirthday.Command:
-		AskWhichBirthdayToForget(message)
-	case commandSubscribeList.Command:
-		AskWhichListToSubscribe(message)
-	case commandStop.Command:
-		Stop(message)
+	case commands.BirthdaySet.Name:
+		response = commands.BirthdaySet.Handle(message)
+	case commands.BirthdaysGet.Name:
+		response = commands.BirthdaysGet.Handle(message)
+	case commands.BirthdayDelete.Name:
+		response = commands.BirthdayDelete.Handle(message)
+	case commands.ListSet.Name:
+		response = commands.ListSet.Handle(message)
+	case commands.Stop.Name:
+		response = commands.Stop.Handle(message)
 	default:
-		CheckNextActionOrDefault(message, userId)
+		response = commands.CheckNextActionOrDefault(message, userId)
 	}
+
+	SendMessage(response.Reply, response.Keyboard)
 }
 
-func SendMessage(message tgbotapi.MessageConfig, keyboard *tgbotapi.ReplyKeyboardMarkup) {
+func SendMessage(message *tgbotapi.MessageConfig, keyboard *tgbotapi.ReplyKeyboardMarkup) {
+	if message == nil {
+		return
+	}
+
 	if keyboard == nil {
-		message.ReplyMarkup = emptyKeyboard
+		message.ReplyMarkup = utils.EmptyKeyboard
 	} else {
 		message.ReplyMarkup = keyboard
 	}
@@ -100,38 +107,10 @@ func GetNameFromUserId(userId int64) string {
 		log.Printf("Error getting chat for user %d: %s", userId, err.Error())
 		return ""
 	}
-	
+
 	if chat.LastName == "" {
 		return chat.FirstName
 	}
 
 	return fmt.Sprintf("%s %s", chat.FirstName, chat.LastName)
-}
-
-func Stop(
-	message *tgbotapi.Message,
-) {
-	status.ResetNext(message.Chat.ID)
-}
-
-func CheckNextActionOrDefault(
-	message *tgbotapi.Message,
-	userId int64,
-) {
-	if userStatus, exists := status.Get(userId); exists {
-		if userStatus.Next != nil {
-			userStatus.Next(message, userStatus.Args...)
-			return
-		} else {
-			log.Printf("User ID %d has next callback set to nil", userId)
-		}
-	} else {
-		log.Printf("User ID %d still not present into status map", userId)
-	}
-
-	reply := tgbotapi.NewMessage(message.Chat.ID, randomInsult())
-
-	status.ResetNext(message.Chat.ID)
-
-	SendMessage(reply, nil)
 }

@@ -1,4 +1,4 @@
-package telegram
+package utils
 
 import (
 	"math/rand"
@@ -12,7 +12,7 @@ var insults []string = []string{
 	"E io che cazzo ne so scusi",
 }
 
-func randomInsult() string {
+func RandomInsult() string {
 	randomIndex := rand.Intn(len(insults))
 
 	return insults[randomIndex]

@@ -2,11 +2,11 @@ package status
 
 type Update struct {
 	Id   UserId
-	Next NextFunc
+	Next NextCommand
 	Args []string
 }
 
-func SetNext(userId UserId, next NextFunc, args ...string) {
+func SetNext(userId UserId, next NextCommand, args ...string) {
 	c <- Update{
 		userId,
 		next,

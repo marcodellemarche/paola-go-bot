@@ -1,4 +1,4 @@
-package telegram
+package commands
 
 import (
 	"fmt"
@@ -11,9 +11,13 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func GetMyBirthdays(
-	message *tgbotapi.Message,
-) {
+var BirthdaysGet = Command{
+	Name:        "compleanni",
+	Description: "Lista dei compleanni da ricordare",
+	Handle:      handleBirthdaysGet,
+}
+
+func handleBirthdaysGet(message *tgbotapi.Message) status.CommandResponse {
 	log.Printf("Get birthdays")
 
 	birthdays, ok := database.BirthdayFind(0, 0, message.Chat.ID)
@@ -21,8 +25,7 @@ func GetMyBirthdays(
 		log.Printf("Error getting birthdays, could not fetch database")
 		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
 		status.ResetNext(message.Chat.ID)
-		SendMessage(reply, nil)
-		return
+		return status.CommandResponse{Reply: &reply, Keyboard: nil}
 	}
 
 	birthdaysFromList, ok := database.BirthdayFindByList(0, 0, 0, message.Chat.ID)
@@ -30,8 +33,7 @@ func GetMyBirthdays(
 		log.Printf("Error getting birthdays from list, could not fetch database")
 		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
 		status.ResetNext(message.Chat.ID)
-		SendMessage(reply, nil)
-		return
+		return status.CommandResponse{Reply: &reply, Keyboard: nil}
 	}
 
 	birthdays = append(birthdays, birthdaysFromList...)
@@ -40,8 +42,7 @@ func GetMyBirthdays(
 		log.Printf("Warning getting birthdays, no birthdays found yet")
 		reply := tgbotapi.NewMessage(message.Chat.ID, "Non ci sono compleanni ancora 🥲")
 		status.ResetNext(message.Chat.ID)
-		SendMessage(reply, nil)
-		return
+		return status.CommandResponse{Reply: &reply, Keyboard: nil}
 	}
 
 	sort.Slice(birthdays, func(i, j int) bool {
@@ -66,6 +67,5 @@ func GetMyBirthdays(
 	}
 
 	status.ResetNext(message.Chat.ID)
-
-	SendMessage(reply, nil)
+	return status.CommandResponse{Reply: &reply, Keyboard: nil}
 }
