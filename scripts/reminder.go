@@ -13,12 +13,12 @@ import (
 )
 
 func BirthdayReminder(days int, debug bool) {
-	token := os.Getenv("TELEGRAM_TOKEN")
-	DATABASE_URL := os.Getenv("DATABASE_URL")
+	telegram_token := os.Getenv("TELEGRAM_TOKEN")
+	database_url := os.Getenv("DATABASE_URL")
 
-	telegram.Initialize(token, debug)
+	telegram.Initialize(telegram_token, debug)
 
-	database.Initialize(DATABASE_URL, debug)
+	database.Initialize(database_url, debug)
 
 	date := time.Now().AddDate(0, 0, days)
 

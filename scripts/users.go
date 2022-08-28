@@ -10,17 +10,17 @@ import (
 )
 
 func Users() {
-	token := os.Getenv("TELEGRAM_TOKEN")
-	DATABASE_URL := os.Getenv("DATABASE_URL")
+	telegram_token := os.Getenv("TELEGRAM_TOKEN")
+	database_url := os.Getenv("DATABASE_URL")
 
-	database.Initialize(DATABASE_URL, false)
+	telegram.Initialize(telegram_token, false)
+
+	database.Initialize(database_url, false)
 
 	users, _ := database.UserFindAll()
 
 	for i, user := range users {
 		log.Printf("User %d: %d - %s", i, user.Id, user.Name)
-
-		telegram.Initialize(token, false)
 
 		name := telegram.GetNameFromUserId(user.Id)
 

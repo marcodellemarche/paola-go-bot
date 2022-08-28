@@ -32,9 +32,9 @@ var SuperPaolaId int64 = 302635332
 
 var SuperPaolaName string = "Paola"
 
-func Migration(token string, write bool) {
-	if token == "" {
-		token = os.Getenv("TELEGRAM_TOKEN")
+func Migration(telegram_token string, write bool) {
+	if telegram_token == "" {
+		telegram_token = os.Getenv("TELEGRAM_TOKEN")
 	}
 
 	jsonMigrationChats, err := os.ReadFile("chats.json")
@@ -48,9 +48,9 @@ func Migration(token string, write bool) {
     }
 
 	if write {
-		DATABASE_URL := os.Getenv("DATABASE_URL")
+		database_url := os.Getenv("DATABASE_URL")
 
-		database.Initialize(DATABASE_URL, false)
+		database.Initialize(database_url, false)
 
 		database.ListDropTable()
 		database.BirthdayDropTable()
@@ -61,7 +61,7 @@ func Migration(token string, write bool) {
 		database.ListCreateTable()
 	}
 
-	telegram.Initialize(token, false)
+	telegram.Initialize(telegram_token, false)
 
 	if write {
 		database.UserInsert(SuperPaolaId, SuperPaolaName)

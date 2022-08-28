@@ -25,7 +25,7 @@ heroku logs --tail
 - Set the worker to run on 1 dyno (always available):
 
 ```bash
-heroku ps:scale worker=1
+heroku ps:scale listen=1
 ```
 
 - Run the birthday reminder for today:
@@ -43,5 +43,5 @@ heroku run reminder 3
 - Run listener locally:
 
 ```bash
-go build -o bin/paola-go-bot && heroku local worker=1
+go build -o bin/paola-go-bot && heroku local listen=1
 ```
