@@ -32,4 +32,5 @@ func Initialize(databaseUri string, debug bool) {
 	UserCreateTable()
 	BirthdayCreateTable()
 	ListCreateTable()
+	WishlistCreateTable()
 }
