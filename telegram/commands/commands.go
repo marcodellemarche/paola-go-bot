@@ -82,4 +82,8 @@ var CommandsEnabled = []tgbotapi.BotCommand{
 		Command:     Stop.Name,
 		Description: Stop.Description,
 	},
+	{
+		Command:     WishlistSet.Name,
+		Description: WishlistSet.Description,
+	},
 }

@@ -80,6 +80,8 @@ func handleUpdate(message *tgbotapi.Message) {
 		response = commands.ListSet.Handle(message)
 	case commands.Stop.Name:
 		response = commands.Stop.Handle(message)
+	case commands.WishlistSet.Name:
+		response = commands.WishlistSet.Handle(message)
 	default:
 		response = commands.CheckNextActionOrDefault(message, userId)
 	}
