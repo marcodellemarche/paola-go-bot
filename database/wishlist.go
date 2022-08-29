@@ -25,6 +25,9 @@ var sqlWishlistDeleteByName string
 //go:embed wishlist/find_by_user.sql
 var sqlWishlistFindByUser string
 
+//go:embed wishlist/set_buyer.sql
+var sqlWishlistSetBuyer string
+
 type Wishlist struct {
 	UserId  int64
 	Name    string
@@ -65,35 +68,58 @@ func WishlistInsert(userId int64, name string, link string, buyerId int64) bool 
 	return true
 }
 
-func WishlistFindByUser(userId int64) (Wishlist, bool) {
-	var wishlist Wishlist
-
+func WishlistFindByUser(userId int64) ([]Wishlist, bool) {
 	rows, err := db.Query(sqlWishlistFindByUser, userId)
 	if err != nil {
-		log.Printf("Error fetching wishlist from database, query failed: %s", err.Error())
-		return wishlist, false
+		log.Printf("Error finding wishlists from database, query failed: %s", err.Error())
+		return nil, false
 	}
 
-	if !rows.Next() {
-		log.Printf("No wishlist for user %d found", userId)
-		return wishlist, true
+	return wishlistFind(rows)
+}
+
+func wishlistFind(rows *sql.Rows) ([]Wishlist, bool) {
+	wishlists := make([]Wishlist, 0)
+	for rows.Next() {
+		var wishlist Wishlist
+
+		var nullableBuyerId sql.NullInt64
+		var nullableLink sql.NullString
+
+		err := rows.Scan(&wishlist.UserId, &wishlist.Name, &nullableLink, &nullableBuyerId)
+		if err != nil {
+			log.Printf("Error finding wishlists from database, scan failed: %s", err.Error())
+			return nil, false
+		}
+
+		if nullableLink.Valid {
+			wishlist.Link = nullableLink.String
+		}
+
+		if nullableBuyerId.Valid {
+			wishlist.BuyerId = nullableBuyerId.Int64
+		}
+
+		wishlists = append(wishlists, wishlist)
 	}
 
-	defer rows.Close()
-
-	rows.Scan(&wishlist.UserId, &wishlist.Name, &wishlist.Link, &wishlist.BuyerId)
-	if err != nil {
-		log.Printf("Error fetching wishlist from database, scan failed: %s", err.Error())
-		return wishlist, false
-	}
-
-	return wishlist, true
+	return wishlists, true
 }
 
 func WishlistDeleteByName(name int64, userId int64) bool {
 	_, err := db.Exec(sqlWishlistDeleteByName, name, userId)
 	if err != nil {
 		log.Printf("Error deleting wishlist from database, wishlist deletion failed: %s", err.Error())
+		return false
+	}
+
+	return true
+}
+
+func WishlistSetBuyer(name string, userId int64, buyerId int64) bool {
+	_, err := db.Exec(sqlWishlistSetBuyer, name, userId, buyerId)
+	if err != nil {
+		log.Printf("Error setting buyer for wishlist on database, wishlist update failed: %s", err.Error())
 		return false
 	}
 

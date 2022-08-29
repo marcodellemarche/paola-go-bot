@@ -36,10 +36,10 @@ type Birthday struct {
 	Day       uint8
 	Month     uint8
 	date      time.Time
-	contactId int64
+	ContactId int64
 	UserId    int64
 	ListId    int64
-	UserName  string
+	ListName  string
 }
 
 func (b *Birthday) Passed() bool {
@@ -161,9 +161,9 @@ func birthdayFind(rows *sql.Rows) ([]Birthday, bool) {
 		var formattedDate string
 		var contactId sql.NullInt64
 		var listId sql.NullInt64
-		var userName sql.NullString
+		var listName sql.NullString
 
-		err := rows.Scan(&birthday.Name, &contactId, &formattedDate, &birthday.UserId, &listId, &userName)
+		err := rows.Scan(&birthday.Name, &contactId, &formattedDate, &birthday.UserId, &listId, &listName)
 		if err != nil {
 			log.Printf("Error finding birthdays from database, scan failed: %s", err.Error())
 			return nil, false
@@ -179,15 +179,15 @@ func birthdayFind(rows *sql.Rows) ([]Birthday, bool) {
 		birthday.Month = uint8(birthday.date.Month())
 
 		if contactId.Valid {
-			birthday.contactId = contactId.Int64
+			birthday.ContactId = contactId.Int64
 		}
 
 		if listId.Valid {
 			birthday.ListId = listId.Int64
 		}
 
-		if userName.Valid {
-			birthday.UserName = userName.String
+		if listName.Valid {
+			birthday.ListName = listName.String
 		}
 
 		birthdays = append(birthdays, birthday)

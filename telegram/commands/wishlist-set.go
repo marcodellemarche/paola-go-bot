@@ -12,7 +12,7 @@ import (
 )
 
 var WishlistSet = Command{
-	Name:        "desidero",
+	Name:        "desidera",
 	Description: "Desidera un regalo",
 	Handle:      handleWishlistSet,
 }
@@ -32,7 +32,7 @@ func askForWishlistLink(message *tgbotapi.Message, args ...string) status.Comman
 	
 	reply := tgbotapi.NewMessage(message.Chat.ID, "Ok, hai un link?")
 	status.SetNext(message.Chat.ID, confirmWishlist, name)
-	noLinkKeyboard := utils.Keyboard([]string{"Nope"})
+	noLinkKeyboard := utils.Keyboard([]string{"No"})
 	return status.CommandResponse{Reply: &reply, Keyboard: &noLinkKeyboard}
 }
 
@@ -49,7 +49,7 @@ func confirmWishlist(message *tgbotapi.Message, args ...string) status.CommandRe
 		return status.CommandResponse{Reply: &reply, Keyboard: nil}
 	}
 
-	if link == "Nope" {
+	if link == "No" {
 		link = ""
 	} else {
 		_, err := url.ParseRequestURI(link)

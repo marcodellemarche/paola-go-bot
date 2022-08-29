@@ -16,7 +16,7 @@ func init() {
 
 func Manage() {
 	for update := range c {
-		var args []string = update.Args
+		args := update.Args
 
 		if oldStatus, exists := status[update.Id]; exists && oldStatus.Next != nil {
 			args = append(oldStatus.Args, args...)

@@ -4,7 +4,7 @@ SELECT
 	date,
 	user_id,
 	NULL AS list_id,
-	NULL AS username
+	NULL AS list_name
 FROM birthday
 WHERE
 	(CAST($1 AS SMALLINT) IS NULL OR (SELECT DATE_PART('day', date)) = CAST($1 AS SMALLINT))

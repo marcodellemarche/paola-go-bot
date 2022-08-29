@@ -59,10 +59,10 @@ func handleBirthdaysGet(message *tgbotapi.Message) status.CommandResponse {
 	reply := tgbotapi.NewMessage(message.Chat.ID, "Tiè, ecco i compleanni:\n")
 
 	for _, birthday := range birthdays {
-		if birthday.UserName == "" {
+		if birthday.ListName == "" {
 			reply.Text += fmt.Sprintf("\n%s - %02d/%02d", birthday.Name, birthday.Day, birthday.Month)
 		} else {
-			reply.Text += fmt.Sprintf("\n[%s] %s - %02d/%02d", birthday.UserName, birthday.Name, birthday.Day, birthday.Month)
+			reply.Text += fmt.Sprintf("\n[%s] %s - %02d/%02d", birthday.ListName, birthday.Name, birthday.Day, birthday.Month)
 		}
 	}
 

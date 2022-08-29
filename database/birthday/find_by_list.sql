@@ -4,7 +4,7 @@ SELECT
     birthday.date, 
     list.subscriber_id AS user_id,
     list.user_id AS list_id,
-    list.user_name
+    list.user_name AS list_name
 FROM public.list
 INNER JOIN birthday
     ON list.user_id = birthday.user_id

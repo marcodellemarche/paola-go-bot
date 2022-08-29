@@ -82,6 +82,8 @@ func handleUpdate(message *tgbotapi.Message) {
 		response = commands.Stop.Handle(message)
 	case commands.WishlistSet.Name:
 		response = commands.WishlistSet.Handle(message)
+	case commands.WishlistsBirthdaysGet.Name:
+		response = commands.WishlistsBirthdaysGet.Handle(message)
 	default:
 		response = commands.CheckNextActionOrDefault(message, userId)
 	}
