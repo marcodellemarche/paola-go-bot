@@ -32,6 +32,6 @@ jobs:
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
           echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
           
-      # Restart docker compose
-      - name: Restart docker compose
-        run: docker compose restart -d
+      # Build and run dockers
+      - name: Build and run dockers
+        run: docker compose up --build --detach
