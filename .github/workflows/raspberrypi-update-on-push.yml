@@ -25,6 +25,13 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      # Creates .env file
+      - name: Create .env file
+        run: |
+          echo "${{ TELEGRAM_TOKEN=secrets.TELEGRAM_TOKEN }}" >> .env
+          echo "${{ DATABASE_URL=secrets.DATABASE_URL }}" >> .env
+          echo "${{ POSTGRES_PASSWORD=secrets.POSTGRES_PASSWORD }}" >> .env
+          
+      # Run docker compose
+      - name: Run docker compose
+        run: docker compose up -d
