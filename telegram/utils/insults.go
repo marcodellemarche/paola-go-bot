@@ -10,6 +10,7 @@ var insults []string = []string{
 	"Sì il cazzo quello ti piace",
 	"Ma che oooooh!",
 	"E io che cazzo ne so scusi",
+	"Senti che puzzo Bruno",
 }
 
 func RandomInsult() string {
