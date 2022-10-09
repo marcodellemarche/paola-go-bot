@@ -28,9 +28,9 @@ jobs:
       # Creates .env file
       - name: Create .env file
         run: |
-          echo "${{ TELEGRAM_TOKEN=secrets.TELEGRAM_TOKEN }}" >> .env
-          echo "${{ DATABASE_URL=secrets.DATABASE_URL }}" >> .env
-          echo "${{ POSTGRES_PASSWORD=secrets.POSTGRES_PASSWORD }}" >> .env
+          echo "TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}" >> .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
           
       # Run docker compose
       - name: Run docker compose
