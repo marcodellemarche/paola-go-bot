@@ -7,7 +7,7 @@ Requires=paola-bot-bot-reminder.service
 
 [Timer]
 Unit=paola-go-bot-reminder.service
-OnCalendar=*-*-* 10,19,22:00:00
+OnCalendar=*-*-* 10,22:00:00
 
 [Install]
 WantedBy=timers.target
