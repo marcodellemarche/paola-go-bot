@@ -1,0 +1,14 @@
+# Timer to trigger the service to run bot reminder within docker
+# /etc/systemd/system/paola-go-bot-reminder.timer
+
+[Unit]
+Description=Trigger Paola Go Bot to remind birthdays
+Requires=paola-bot-bot-reminder.service
+
+[Timer]
+Unit=paola-go-bot-reminder.service
+OnCalendar=*-*-* 10,19,22:00:00
+
+[Install]
+WantedBy=timers.target
+
