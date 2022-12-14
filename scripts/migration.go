@@ -48,9 +48,11 @@ func Migration(telegram_token string, write bool) {
     }
 
 	if write {
-		database_url := os.Getenv("DATABASE_URL")
+		database_user := os.Getenv("POSTGRES_USER")
+		database_db := os.Getenv("POSTGRES_DB")
+		database_password := os.Getenv("POSTGRES_PASSWORD")
 
-		database.Initialize(database_url, false)
+		database.Initialize(database_user, database_db, database_password, false)
 
 		database.ListDropTable()
 		database.BirthdayDropTable()

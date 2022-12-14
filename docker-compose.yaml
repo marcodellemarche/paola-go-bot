@@ -4,7 +4,11 @@ services:
         build:
             dockerfile: Dockerfile
             context: .
-        env_file: .env
+        environment:
+            - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+            - POSTGRES_USER=${POSTGRES_USER:-postgres}
+            - POSTGRES_DB=${POSTGRES_DB:-paola-go-bot-db}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
         restart: always
         depends_on:
             - database
@@ -16,8 +20,10 @@ services:
     database:
         image: postgres
         restart: always
-        env_file: 
-            - .env
+        environment:
+            - POSTGRES_USER=${POSTGRES_USER:-postgres}
+            - POSTGRES_DB=${POSTGRES_DB:-paola-go-bot-db}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
         ports:
             - "5432:5432"
         volumes: 

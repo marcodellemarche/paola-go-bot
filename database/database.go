@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"log"
 
 	"database/sql"
@@ -10,12 +11,24 @@ import (
 
 var db sql.DB
 
-func Initialize(databaseUri string, debug bool) {
-	if databaseUri == "" {
-		log.Fatal("Missing database URI")
+var host string = "database"
+var port int16 = 5432
+var sslmode string = "disable" // Use "require" for cloud DBs and "disable" for self hosted ones
+
+func Initialize(user string, dbname string, password string, debug bool) {
+	if user == "" {
+		log.Fatal("Missing database user")
 	}
 
-	// databaseUri := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=require", host, port, user, password, dbname)
+	if dbname == "" {
+		log.Fatal("Missing database name")
+	}
+
+	if password == "" {
+		log.Fatal("Missing database password")
+	}
+
+	databaseUri := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s", host, port, user, password, dbname, sslmode)
 	pDb, err := sql.Open("postgres", databaseUri)
 	db = *pDb
 	if err != nil {
