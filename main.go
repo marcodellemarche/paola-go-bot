@@ -21,7 +21,7 @@ type ListenCmd struct {
 type ReminderCmd struct {
 	Super bool `help:"Enable SuperPaola mode."`
 
-	Days string `arg name:"days" help:"How many days from today for the reminder." default:"0" type:"number"`
+	Days []string `arg name:"days" help:"How many days from today for the reminder." default:"0" type:"[]number"`
 }
 
 type MigrationCmd struct {
@@ -63,9 +63,11 @@ func (l *ListenCmd) Run(ctx *Context) error {
 }
 
 func (r *ReminderCmd) Run(ctx *Context) error {
-	log.Println("reminder", r.Days)
-	days, _ := strconv.Atoi(r.Days)
-	scripts.BirthdayReminder(days, ctx.Debug)
+	for _, rDay := range r.Days {
+		log.Println("reminder", rDay)
+		days, _ := strconv.Atoi(rDay)
+		scripts.BirthdayReminder(days, ctx.Debug)
+	}
 
 	return nil
 }
