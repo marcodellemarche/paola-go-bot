@@ -7,13 +7,14 @@ import (
 type NextCommand func(message *tgbotapi.Message, args ...string) CommandResponse
 
 type CommandResponse struct {
-	Reply *tgbotapi.MessageConfig
+	Reply    *tgbotapi.MessageConfig
 	Keyboard *tgbotapi.ReplyKeyboardMarkup
 }
 
 type TelegramStatus struct {
-	Next NextCommand
-	Args []string
+	Next     NextCommand
+	Args     []string
+	ThreadID string
 }
 
 type UserId = int64

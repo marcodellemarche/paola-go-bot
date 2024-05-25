@@ -20,29 +20,34 @@ var BirthdaysGet = Command{
 func handleBirthdaysGet(message *tgbotapi.Message) status.CommandResponse {
 	log.Printf("Get birthdays")
 
-	birthdays, ok := database.BirthdayFind(0, 0, message.Chat.ID)
-	if !ok {
-		log.Printf("Error getting birthdays, could not fetch database")
-		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
-		status.ResetNext(message.Chat.ID)
+	list, err := ListBirthdays(message.Chat.ID)
+	if err != nil {
+		log.Printf("Error getting birthdays: %s", err)
+
+		reply := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("%s", err))
 		return status.CommandResponse{Reply: &reply, Keyboard: nil}
 	}
 
-	birthdaysFromList, ok := database.BirthdayFindByList(0, 0, 0, message.Chat.ID)
+	reply := tgbotapi.NewMessage(message.Chat.ID, list)
+	status.ResetNext(message.Chat.ID)
+	return status.CommandResponse{Reply: &reply, Keyboard: nil}
+}
+
+func ListBirthdays(chatID int64) (string, error) {
+	birthdays, ok := database.BirthdayFind(0, 0, chatID)
 	if !ok {
-		log.Printf("Error getting birthdays from list, could not fetch database")
-		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
-		status.ResetNext(message.Chat.ID)
-		return status.CommandResponse{Reply: &reply, Keyboard: nil}
+		return "", fmt.Errorf("could not fetch database with find")
+	}
+
+	birthdaysFromList, ok := database.BirthdayFindByList(0, 0, 0, chatID)
+	if !ok {
+		return "", fmt.Errorf("could not fetch database with find-by-list")
 	}
 
 	birthdays = append(birthdays, birthdaysFromList...)
 
 	if len(birthdays) == 0 {
-		log.Printf("Warning getting birthdays, no birthdays found yet")
-		reply := tgbotapi.NewMessage(message.Chat.ID, "Non ci sono compleanni ancora 🥲")
-		status.ResetNext(message.Chat.ID)
-		return status.CommandResponse{Reply: &reply, Keyboard: nil}
+		return "Non ci sono compleanni ancora 🥲", nil
 	}
 
 	sort.Slice(birthdays, func(i, j int) bool {
@@ -56,16 +61,15 @@ func handleBirthdaysGet(message *tgbotapi.Message) status.CommandResponse {
 		}
 	}
 
-	reply := tgbotapi.NewMessage(message.Chat.ID, "Tiè, ecco i compleanni:\n")
+	message := "Tiè, ecco i compleanni:\n"
 
 	for _, birthday := range birthdays {
 		if birthday.UserName == "" {
-			reply.Text += fmt.Sprintf("\n%s - %02d/%02d", birthday.Name, birthday.Day, birthday.Month)
+			message += fmt.Sprintf("\n%s - %02d/%02d", birthday.Name, birthday.Day, birthday.Month)
 		} else {
-			reply.Text += fmt.Sprintf("\n[%s] %s - %02d/%02d", birthday.UserName, birthday.Name, birthday.Day, birthday.Month)
+			message += fmt.Sprintf("\n[%s] %s - %02d/%02d", birthday.UserName, birthday.Name, birthday.Day, birthday.Month)
 		}
 	}
 
-	status.ResetNext(message.Chat.ID)
-	return status.CommandResponse{Reply: &reply, Keyboard: nil}
+	return message, nil
 }

@@ -1,6 +1,6 @@
 module paola-go-bot
 
-go 1.16
+go 1.21.7
 
 require (
 	github.com/alecthomas/kong v0.6.1

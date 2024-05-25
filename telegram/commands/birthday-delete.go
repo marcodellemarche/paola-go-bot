@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"log"
 
 	"paola-go-bot/database"
@@ -22,7 +23,7 @@ func handleBirthdayDelete(message *tgbotapi.Message) status.CommandResponse {
 	birthdays, ok := database.BirthdayFind(0, 0, message.Chat.ID)
 	if !ok {
 		log.Printf("Error deleting birthdays, could not fetch database")
-		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
+		reply := tgbotapi.NewMessage(message.Chat.ID, ErrorMessage)
 		status.ResetNext(message.Chat.ID)
 		return status.CommandResponse{Reply: &reply, Keyboard: nil}
 	}
@@ -51,15 +52,25 @@ func confirmDeletedBirthday(message *tgbotapi.Message, args ...string) status.Co
 
 	name := message.Text
 
-	ok := database.BirthdayDeleteByName(name, message.Chat.ID)
-	if !ok {
-		log.Printf("Error deleting birthdays, could not update database")
-		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
+	response, err := DeleteBirthday(name, message.Chat.ID)
+	if err != nil {
+		log.Printf("Error deleting birthdays: %s", err)
+		reply := tgbotapi.NewMessage(message.Chat.ID, ErrorMessage)
 		status.ResetNext(message.Chat.ID)
 		return status.CommandResponse{Reply: &reply, Keyboard: nil}
 	}
 
-	reply := tgbotapi.NewMessage(message.Chat.ID, "Ok, me lo dimenticherò ✌️")
+	reply := tgbotapi.NewMessage(message.Chat.ID, response)
 	status.ResetNext(message.Chat.ID)
 	return status.CommandResponse{Reply: &reply, Keyboard: nil}
+}
+
+func DeleteBirthday(name string, chatID int64) (string, error) {
+	ok := database.BirthdayDeleteByName(name, chatID)
+	if !ok {
+		return "", fmt.Errorf("could not delete from database")
+	}
+
+	log.Printf("Birthday deleted: %s", name)
+	return "Ok, me lo dimenticherò ✌️", nil
 }

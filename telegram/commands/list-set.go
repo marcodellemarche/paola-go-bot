@@ -51,7 +51,7 @@ func confirmListSubscription(message *tgbotapi.Message, args ...string) status.C
 	ok := database.ListInsert(message.Contact.UserID, message.Chat.ID, name)
 	if !ok {
 		log.Printf("Error subscribing new list, could not update database")
-		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
+		reply := tgbotapi.NewMessage(message.Chat.ID, ErrorMessage)
 		status.ResetNext(message.Chat.ID)
 		return status.CommandResponse{Reply: &reply, Keyboard: nil}
 	}

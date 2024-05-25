@@ -29,7 +29,7 @@ func handleStart(message *tgbotapi.Message) status.CommandResponse {
 	ok := database.UserInsert(message.Chat.ID, name)
 	if !ok {
 		log.Printf("Error creating new user, could not update database")
-		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
+		reply := tgbotapi.NewMessage(message.Chat.ID, ErrorMessage)
 		status.ResetNext(message.Chat.ID)
 		return status.CommandResponse{Reply: &reply, Keyboard: nil}
 	}

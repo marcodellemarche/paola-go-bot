@@ -38,14 +38,14 @@ func Migration(telegram_token string, write bool) {
 	}
 
 	jsonMigrationChats, err := os.ReadFile("chats.json")
-    if err != nil {
-        log.Fatalf("Error loading 'chats.json' file: %s", err.Error())
-    }
+	if err != nil {
+		log.Fatalf("Error loading 'chats.json' file: %s", err.Error())
+	}
 
 	jsonMigrationSuper, err := os.ReadFile("super.json")
-    if err != nil {
-        log.Fatalf("Error loading 'super.json' file: %s", err.Error())
-    }
+	if err != nil {
+		log.Fatalf("Error loading 'super.json' file: %s", err.Error())
+	}
 
 	if write {
 		database_user := os.Getenv("POSTGRES_USER")
@@ -63,19 +63,19 @@ func Migration(telegram_token string, write bool) {
 		database.ListCreateTable()
 	}
 
-	telegram.Initialize(telegram_token, false)
+	telegramBot := telegram.New(telegram_token, nil, false)
 
 	if write {
 		database.UserInsert(SuperPaolaId, SuperPaolaName)
 	}
-	
+
 	var chats []Chat
 	json.Unmarshal(jsonMigrationChats, &chats)
 
 	for i, chat := range chats {
 		log.Printf("Chat %d: %d - %s - super %v", i, chat.ChatId, chat.Name, chat.Trust)
 
-		name := telegram.GetNameFromUserId(chat.ChatId)
+		name := telegramBot.GetNameFromUserId(chat.ChatId)
 
 		log.Printf("- name: %s", name)
 
