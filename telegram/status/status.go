@@ -25,6 +25,7 @@ func Manage() {
 		status[update.Id] = TelegramStatus{
 			update.Next,
 			args,
+			update.ThreadId,
 		}
 
 		log.Printf("Status updated for %d: %+v", update.Id, status[update.Id])

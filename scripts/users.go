@@ -15,7 +15,7 @@ func Users() {
 	database_db := os.Getenv("POSTGRES_DB")
 	database_password := os.Getenv("POSTGRES_PASSWORD")
 
-	telegram.Initialize(telegram_token, false)
+	telegramBot := telegram.New(telegram_token, nil, false)
 
 	database.Initialize(database_user, database_db, database_password, false)
 
@@ -24,7 +24,7 @@ func Users() {
 	for i, user := range users {
 		log.Printf("User %d: %d - %s", i, user.Id, user.Name)
 
-		name := telegram.GetNameFromUserId(user.Id)
+		name := telegramBot.GetNameFromUserId(user.Id)
 
 		log.Printf("Found name: %s", name)
 	}

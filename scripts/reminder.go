@@ -18,7 +18,7 @@ func BirthdayReminder(days int, debug bool) {
 	database_db := os.Getenv("POSTGRES_DB")
 	database_password := os.Getenv("POSTGRES_PASSWORD")
 
-	telegram.Initialize(telegram_token, debug)
+	telegramBot := telegram.New(telegram_token, nil, debug)
 
 	database.Initialize(database_user, database_db, database_password, debug)
 
@@ -40,7 +40,7 @@ func BirthdayReminder(days int, debug bool) {
 	for _, birthday := range birthdays {
 		log.Printf("Notifying %d of %s's birthday", birthday.UserId, birthday.Name)
 		message := tgbotapi.NewMessage(birthday.UserId, fmt.Sprintf("%s è il compleanno di %s!", printableDay, birthday.Name))
-		telegram.SendMessage(&message, nil)
+		telegramBot.SendMessage(&message, nil)
 	}
 
 	birthdays, ok = database.BirthdayFindByList(uint8(date.Day()), uint8(date.Month()), 0, 0)
@@ -52,6 +52,6 @@ func BirthdayReminder(days int, debug bool) {
 	for _, birthday := range birthdays {
 		log.Printf("[%s] Notifying %d of %s's birthday", birthday.UserName, birthday.UserId, birthday.Name)
 		message := tgbotapi.NewMessage(birthday.UserId, fmt.Sprintf("[%s] %s è il compleanno di %s!", birthday.UserName, printableDay, birthday.Name))
-		telegram.SendMessage(&message, nil)
+		telegramBot.SendMessage(&message, nil)
 	}
 }

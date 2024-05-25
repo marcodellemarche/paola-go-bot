@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"paola-go-bot/chatgpt"
+	"paola-go-bot/database"
 	"paola-go-bot/telegram/commands"
 	"paola-go-bot/telegram/status"
 	"paola-go-bot/telegram/utils"
@@ -11,13 +13,17 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-var bot tgbotapi.BotAPI
+type Telegram struct {
+	bot           tgbotapi.BotAPI
+	chatgptClient *chatgpt.ChatGPT
+}
 
-func Initialize(token string, debug bool) {
+func New(token string, chatgptClient *chatgpt.ChatGPT, debug bool) *Telegram {
 	if token == "" {
 		log.Fatal("Missing Telegram token")
 	}
 
+	var bot tgbotapi.BotAPI
 	pBot, err := tgbotapi.NewBotAPI(token)
 	bot = *pBot
 
@@ -30,10 +36,15 @@ func Initialize(token string, debug bool) {
 	}
 
 	log.Printf("Bot authorized on account %s", bot.Self.UserName)
+
+	return &Telegram{
+		bot:           bot,
+		chatgptClient: chatgptClient,
+	}
 }
 
-func ListenToUpdates() {
-	bot.Request(tgbotapi.NewSetMyCommands(commands.CommandsEnabled...))
+func (t *Telegram) ListenToUpdates() {
+	t.bot.Request(tgbotapi.NewSetMyCommands(commands.CommandsEnabled...))
 
 	log.Printf("Listening updates to commands: %+v", commands.CommandsEnabled)
 
@@ -42,16 +53,16 @@ func ListenToUpdates() {
 
 	go status.Manage()
 
-	updates := bot.GetUpdatesChan(update_config)
+	updates := t.bot.GetUpdatesChan(update_config)
 
 	for update := range updates {
 		if update.Message != nil {
-			go handleUpdate(update.Message)
+			go t.handleUpdate(update.Message)
 		}
 	}
 }
 
-func handleUpdate(message *tgbotapi.Message) {
+func (t *Telegram) handleUpdate(message *tgbotapi.Message) {
 	log.Printf("[%s] %s", message.From.UserName, message.Text)
 
 	userId := message.Chat.ID
@@ -60,12 +71,12 @@ func handleUpdate(message *tgbotapi.Message) {
 
 	if message.Command() == commands.Start.Name {
 		response = commands.Start.Handle(message)
-		SendMessage(response.Reply, response.Keyboard)
+		t.SendMessage(response.Reply, response.Keyboard)
 		return
 	}
 
-	if response = commands.CheckIfNewUser(message, userId); response.Reply != nil {
-		SendMessage(response.Reply, response.Keyboard)
+	if response = t.checkIfNewUser(message, userId); response.Reply != nil {
+		t.SendMessage(response.Reply, response.Keyboard)
 		return
 	}
 
@@ -81,13 +92,13 @@ func handleUpdate(message *tgbotapi.Message) {
 	case commands.Stop.Name:
 		response = commands.Stop.Handle(message)
 	default:
-		response = commands.CheckNextActionOrDefault(message, userId)
+		response = t.checkNextActionOrDefault(message, userId)
 	}
 
-	SendMessage(response.Reply, response.Keyboard)
+	t.SendMessage(response.Reply, response.Keyboard)
 }
 
-func SendMessage(message *tgbotapi.MessageConfig, keyboard *tgbotapi.ReplyKeyboardMarkup) {
+func (t *Telegram) SendMessage(message *tgbotapi.MessageConfig, keyboard *tgbotapi.ReplyKeyboardMarkup) {
 	if message == nil {
 		return
 	}
@@ -98,11 +109,11 @@ func SendMessage(message *tgbotapi.MessageConfig, keyboard *tgbotapi.ReplyKeyboa
 		message.ReplyMarkup = keyboard
 	}
 
-	bot.Send(message)
+	t.bot.Send(message)
 }
 
-func GetNameFromUserId(userId int64) string {
-	chat, err := bot.GetChat(tgbotapi.ChatInfoConfig{ChatConfig: tgbotapi.ChatConfig{ChatID: userId}})
+func (t *Telegram) GetNameFromUserId(userId int64) string {
+	chat, err := t.bot.GetChat(tgbotapi.ChatInfoConfig{ChatConfig: tgbotapi.ChatConfig{ChatID: userId}})
 	if err != nil {
 		log.Printf("Error getting chat for user %d: %s", userId, err.Error())
 		return ""
@@ -113,4 +124,53 @@ func GetNameFromUserId(userId int64) string {
 	}
 
 	return fmt.Sprintf("%s %s", chat.FirstName, chat.LastName)
+}
+
+func (t *Telegram) checkIfNewUser(message *tgbotapi.Message, userId int64) status.CommandResponse {
+	user, ok := database.UserFindById(message.Chat.ID)
+	if !ok {
+		log.Printf("Error finding user, could not fetch database")
+		reply := tgbotapi.NewMessage(message.Chat.ID, commands.ErrorMessage)
+		status.ResetNext(message.Chat.ID)
+		return status.CommandResponse{Reply: &reply, Keyboard: nil}
+	}
+
+	if user.Id == 0 {
+		reply := tgbotapi.NewMessage(message.Chat.ID, fmt.Sprintf("Te sei nuovo, inizia un po' con /%s", commands.Start.Name))
+		status.ResetNext(message.Chat.ID)
+		return status.CommandResponse{Reply: &reply, Keyboard: nil}
+	}
+
+	if _, exists := status.Get(userId); !exists {
+		status.ResetNext(message.Chat.ID)
+	}
+
+	return status.CommandResponse{Reply: nil, Keyboard: nil}
+}
+
+func (t *Telegram) checkNextActionOrDefault(message *tgbotapi.Message, userId int64) status.CommandResponse {
+	if userStatus, exists := status.Get(userId); exists {
+		if userStatus.Next != nil {
+			return userStatus.Next(message, userStatus.Args...)
+		} else {
+			log.Printf("User ID %d has next callback set to nil", userId)
+		}
+	} else {
+		log.Printf("User ID %d still not present into status map", userId)
+	}
+
+	status.ResetNext(message.Chat.ID)
+
+	if t.chatgptClient == nil {
+		log.Printf("ChatGPT client is not setup, cannot use AI assistant")
+
+		reply := tgbotapi.NewMessage(message.Chat.ID, utils.RandomInsult())
+		return status.CommandResponse{Reply: &reply, Keyboard: nil}
+	}
+
+	if message.Voice != nil {
+		return t.aiHandleVoice(message)
+	} else {
+		return t.aiHandleText(message)
+	}
 }

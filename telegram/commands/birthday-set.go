@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 
@@ -101,12 +102,30 @@ func confirmNewBirthday(message *tgbotapi.Message, args ...string) status.Comman
 	ok := database.BirthdayInsert(name, parsedContactId, uint8(parsedDay), uint8(parsedMonth), message.Chat.ID)
 	if !ok {
 		log.Printf("Error confirming birthday, could not update database")
-		reply := tgbotapi.NewMessage(message.Chat.ID, errorMessage)
+		reply := tgbotapi.NewMessage(message.Chat.ID, ErrorMessage)
 		status.ResetNext(message.Chat.ID)
 		return status.CommandResponse{Reply: &reply, Keyboard: nil}
 	}
 
-	reply := tgbotapi.NewMessage(message.Chat.ID, "Ok, me lo ricorderò ✌️")
+	response, err := SetBirthday(name, parsedContactId, uint8(parsedDay), uint8(parsedMonth), message.Chat.ID)
+	if err != nil {
+		log.Printf("Error confirming birthday: %s", err)
+		reply := tgbotapi.NewMessage(message.Chat.ID, ErrorMessage)
+		status.ResetNext(message.Chat.ID)
+		return status.CommandResponse{Reply: &reply, Keyboard: nil}
+	}
+
+	reply := tgbotapi.NewMessage(message.Chat.ID, response)
 	status.ResetNext(message.Chat.ID)
 	return status.CommandResponse{Reply: &reply, Keyboard: nil}
+}
+
+func SetBirthday(name string, contactId int64, day uint8, month uint8, chatID int64) (string, error) {
+	ok := database.BirthdayInsert(name, 0, day, month, chatID)
+	if !ok {
+		return "", fmt.Errorf("could not update database")
+	}
+
+	log.Printf("Set birthday for %s to %d-%d", name, month, day)
+	return "Ok, me lo ricorderò ✌️", nil
 }

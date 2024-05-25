@@ -16,6 +16,10 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 FROM alpine:latest
 
+RUN apk update
+RUN apk upgrade
+RUN apk add --no-cache ffmpeg
+
 WORKDIR /root/
 
 COPY --from=builder /app/main .
