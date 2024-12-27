@@ -1,6 +1,7 @@
 version: "3.7"
 services: 
     server:
+        image: marcodellemarche/paola-go-bot-server:0.2.0
         build:
             dockerfile: Dockerfile
             context: .
@@ -21,7 +22,7 @@ services:
             - backend
         command: "listen"
     database:
-        image: postgres
+        image: postgres:14.5
         restart: always
         environment:
             - POSTGRES_USER=${POSTGRES_USER:-postgres}
