@@ -14,15 +14,15 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 # Starting a new stage from scratch 
 
-# FROM alpine:3.14
+FROM alpine:3.14
 
-# RUN apk update
-# RUN apk upgrade
-# RUN apk add --no-cache ffmpeg
+RUN apk update
+RUN apk upgrade
+RUN apk add --no-cache ffmpeg
 
-# WORKDIR /root/
+WORKDIR /root/
 
-# COPY --from=builder /app/main .
-# COPY --from=builder /app/.env .
+COPY --from=builder /app/main .
+COPY --from=builder /app/.env .
 
 ENTRYPOINT ["./main"]
