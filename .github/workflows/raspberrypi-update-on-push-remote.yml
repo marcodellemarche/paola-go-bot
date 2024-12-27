@@ -33,14 +33,4 @@ jobs:
       - name: Build and push Docker image
         run: |
           TAG=$(date +%Y%m%d%H%M)
-          docker build -t marcodellemarche/paola-go-bot-server:$TAG .
-          docker push marcodellemarche/paola-go-bot-server:$TAG
-
-      - name: Build and run dockers
-        uses: pguyot/arm-runner-action@v2
-        with:
-          commands: |
-            TAG=$(date +%Y%m%d%H%M)
-            docker build -t marcodellemarche/paola-go-bot-server:$TAG .
-            docker push marcodellemarche/paola-go-bot-server:$TAG
-            docker compose up --build --detach
+          docker buildx build --platform linux/arm/v7 --push -t marcodellemarche/paola-go-bot-server:$TAG .
