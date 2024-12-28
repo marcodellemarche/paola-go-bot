@@ -18,14 +18,22 @@ jobs:
         platform:
           - linux/amd64
           - linux/arm/v7
-
-jobs:
-  build:
-    runs-on: ubuntu-20.04
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV      
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.DOCKERHUB_REPO }}
+            ${{ env.GHCR_REPO }}
 
       - name: Create .env file
         run: |
