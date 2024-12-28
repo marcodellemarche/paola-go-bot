@@ -1,4 +1,4 @@
-FROM golang:latest as builder 
+FROM golang:1.21.7 as builder 
     
 LABEL maintainer = "Marco Ferretti <mferretti93@gmail.com>"
 
@@ -14,7 +14,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 # Starting a new stage from scratch 
 
-FROM alpine:latest
+FROM alpine:3.14
 
 RUN apk update
 RUN apk upgrade
