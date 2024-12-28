@@ -86,7 +86,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
       
-merge:
+  merge:
     runs-on: ubuntu-22.04
     needs:
       - build
