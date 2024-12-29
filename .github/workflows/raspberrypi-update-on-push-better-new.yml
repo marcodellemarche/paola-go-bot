@@ -1,28 +1,42 @@
 name: Docker Build and Push Better New
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
-  workflow_dispatch:
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
 
 env:
-  TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-  OPENAI_ASSISTANT_ID: ${{ secrets.OPENAI_ASSISTANT_ID }}
-  OPENAI_LIMITER_CAPACITY: ${{ secrets.OPENAI_LIMITER_CAPACITY }}
-  OPENAI_LIMITER_RATE_PER_HOUR: ${{ secrets.OPENAI_LIMITER_RATE_PER_HOUR }}
+  # TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+  # POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+  # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  # OPENAI_ASSISTANT_ID: ${{ secrets.OPENAI_ASSISTANT_ID }}
+  # OPENAI_LIMITER_CAPACITY: ${{ secrets.OPENAI_LIMITER_CAPACITY }}
+  # OPENAI_LIMITER_RATE_PER_HOUR: ${{ secrets.OPENAI_LIMITER_RATE_PER_HOUR }}
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-      - name: Login to Docker Hub
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -34,5 +48,14 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm/v7
-          push: true
-          tags: marcodellemarche/paola-go-bot:0.2.2
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
