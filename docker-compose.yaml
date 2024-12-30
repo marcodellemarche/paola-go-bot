@@ -1,7 +1,7 @@
 version: "3.7"
 services: 
     server:
-        image: marcodellemarche/paola-go-bot-server:0.2.0
+        image: ghcr.io/marcodellemarche/paola-go-bot:${IMAGE_TAG:-latest}
         build:
             dockerfile: Dockerfile
             context: .
@@ -12,8 +12,8 @@ services:
             - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
             - OPENAI_API_KEY=${OPENAI_API_KEY}
             - OPENAI_ASSISTANT_ID=${OPENAI_ASSISTANT_ID}
-            - OPENAI_LIMITER_CAPACITY=${OPENAI_LIMITER_CAPACITY}
-            - OPENAI_LIMITER_RATE_PER_HOUR=${OPENAI_LIMITER_RATE_PER_HOUR}
+            - OPENAI_LIMITER_CAPACITY=${OPENAI_LIMITER_CAPACITY:-100}
+            - OPENAI_LIMITER_RATE_PER_HOUR=${OPENAI_LIMITER_RATE_PER_HOUR:-100}
         restart: always
         depends_on:
             - database

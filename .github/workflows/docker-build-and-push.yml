@@ -6,18 +6,12 @@ on:
     branches:
       - main
     tags:
-      - 'v*'
+      - v*
   pull_request:
     branches:
       - main
 
 env:
-  # TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-  # POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-  # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-  # OPENAI_ASSISTANT_ID: ${{ secrets.OPENAI_ASSISTANT_ID }}
-  # OPENAI_LIMITER_CAPACITY: ${{ secrets.OPENAI_LIMITER_CAPACITY }}
-  # OPENAI_LIMITER_RATE_PER_HOUR: ${{ secrets.OPENAI_LIMITER_RATE_PER_HOUR }}
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
