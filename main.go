@@ -31,6 +31,8 @@ type MigrationCmd struct {
 
 type UsersCmd struct{}
 
+type CheckTagCmd struct{}
+
 var cli struct {
 	Debug bool `help:"Enable debug mode."`
 
@@ -38,6 +40,7 @@ var cli struct {
 	Listen    ListenCmd    `cmd help:"Start the bot to listen for updates."`
 	Migration MigrationCmd `cmd help:"Start the DB migration."`
 	Users     UsersCmd     `cmd help:"Fetch users info."`
+	CheckTag  CheckTagCmd  `cmd help:"Check for new tags."`
 }
 
 func init() {
@@ -82,6 +85,13 @@ func (m *MigrationCmd) Run(ctx *Context) error {
 func (l *UsersCmd) Run(ctx *Context) error {
 	log.Println("users")
 	scripts.Users()
+
+	return nil
+}
+
+func (l *CheckTagCmd) Run(ctx *Context) error {
+	log.Println("check-tag")
+	scripts.CheckTag()
 
 	return nil
 }
