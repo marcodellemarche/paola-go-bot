@@ -1,6 +1,6 @@
-FROM golang:1.21.7 as builder 
+FROM golang:1.21.7 AS builder 
     
-LABEL maintainer = "Marco Ferretti <mferretti93@gmail.com>"
+LABEL maintainer "Marco Ferretti <mferretti93@gmail.com>"
 
 WORKDIR /app
 
