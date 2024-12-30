@@ -21,6 +21,19 @@ services:
             - default
             - backend
         command: "listen"
+    check_tag:
+        image: ghcr.io/marcodellemarche/paola-go-bot:${IMAGE_TAG:-latest}
+        build:
+            dockerfile: Dockerfile
+            context: .
+        environment:
+            - GITHUB_USERNAME=${GITHUB_USERNAME}
+            - IMAGE_NAME=${IMAGE_NAME:-paola-go-bot}
+            - CHECK_INTERVAL=${CHECK_INTERVAL:-10s}
+        restart: always
+        networks:
+            - default
+        command: "check-tag"
     database:
         image: postgres:14.5
         restart: always
